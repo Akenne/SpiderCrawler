@@ -6,31 +6,26 @@ import xml.etree.ElementTree as ET
 import requests
 from xml.dom.minidom import parseString
 
-'''
-p = open('past.txt', 'r+')
-f = open('future.txt', 'r+')
-fo = open('found.txt', 'r+')
-past = p.read()
-future = f.read()#put id here if you have it, otherwise
-found = fo.read()
-p.close()
-f.close()
-fo.close()
-'''
 
-with open('past.txt', 'r+') as in_file:
-    past = in_file.read().split('\n')
-with open('future.txt', 'r+') as in_file:
-    future = in_file.read().split('\n')
-with open('found.txt', 'r+') as in_file:
-    found = in_file.read().split('\n')
-
+reset = False #If you want to contiinue where you left off or reset?
+fake = ['267', '266']
 STEAM_API_KEY = '32EADD85E6F53CB6AAF6D21558ED6C73' #your steam api key
 BACKPACK_TF_API_KEY = '53e1698f4f96f4977e8b4567'
-STEAM_USERNAME = 'adamater' #initial steam name
+STEAM_USERNAME = 'Lotorens' #initial steam name
 target = 250 #maximum hours
 gameid = '440' #tf2 is 440
 
+if reset == False:
+	with open('past.txt', 'r+') as in_file:
+		past = in_file.read().split('\n')
+	with open('future.txt', 'r+') as in_file:
+		future = in_file.read().split('\n')
+	with open('found.txt', 'r+') as in_file:
+		found = in_file.read().split('\n')
+else:
+	past = []
+	future = []
+	found = []
 
 def getid(vanity): #converts vanity url to steam id
 	global STEAM_API_KEY
@@ -66,8 +61,9 @@ def backpack(id):
 	backpack = backpack_r.read()
 	data = ET.fromstring(backpack)
 	for item in data.findall("./items/item"):
-		if item.find('quality').text.startswith('6'):
+		if item.find('quality').text.startswith('5') and item.find('defindex').text not in fake:
 			found.append(id)
+			print("Found")
 			break
 
 def files():
@@ -82,15 +78,18 @@ def files():
 if __name__ == '__main__':
 	if STEAM_USERNAME != '':
 		future.append(getid(STEAM_USERNAME))
+	count = 0
 	while len(future) != 0:
 		for i in future:
+			count +=1
+			if count%25 == 0:
+				print (count)
 			files()
 			future.remove(i)
 			if i in past:
 				break
 			else:
 				past.append(i)
-				print (past)
 				getfriend(i)
 				if hours(i)<target:
 					backpack(i)

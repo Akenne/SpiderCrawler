@@ -17,6 +17,7 @@ target = 250 #maximum hours
 gameid = '440' #tf2 is 440
 
 def schema(tf):
+	print('checking schema, please wait ~ 30 secs')
 	if tf:
 		schema_r = urllib2.urlopen('http://api.steampowered.com/IEconItems_440/GetSchema/v0001/?key=32EADD85E6F53CB6AAF6D21558ED6C73&format=xml')
 		owned = schema_r.read()
@@ -25,10 +26,13 @@ def schema(tf):
 		for item in data.findall("./items/item"):
 			defindex = item.find('defindex').text
 			itemschema[defindex] = item.find('name').text
-			pickle.dump(itemschema, open("save.p", "wb"))
+		pickle.dump(itemschema, open("save.p", "wb"))
 		return itemschema
 	else:
-		return pickle.load(open("save.p", "rb" ))
+		try:
+			return pickle.load(open("save.p", "rb" ))
+		except:
+			return schema(True)
 
 itemschema = schema(SchemaUpdate)
 

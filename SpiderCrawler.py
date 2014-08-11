@@ -5,8 +5,6 @@ from xml.dom.minidom import parseString
 import pickle
 import App
 
-SchemaUpdate = False
-reset = False #If you want to contiinue where you left off or reset?
 fake = ['267', '266']
 STEAM_API_KEY = '32EADD85E6F53CB6AAF6D21558ED6C73' #your steam api key
 BACKPACK_TF_API_KEY = '53e1698f4f96f4977e8b4567'
@@ -14,13 +12,10 @@ STEAM_USERNAME = 'adamater' #initial steam name
 target = 250 #maximum hours
 gameid = '440' #tf2 is 440
 wanted = '222' #Items you are looking for
+itemschema = {}
 
 def schema(tf):#get item schema to find item names
 	global STEAM_API_KEY
-	try:
-		return pickle.load(open("save.p", "rb" ))
-	except:
-		return schema(True)
 	if tf:
 		print('updating schema, please wait ~ 30 secs')
 		schema_r = urllib2.urlopen(('http://api.steampowered.com/IEconItems_440/GetSchema/v0001/?key={}&format=xml').format(STEAM_API_KEY))
@@ -32,8 +27,13 @@ def schema(tf):#get item schema to find item names
 			itemschema[defindex] = item.find('name').text
 		pickle.dump(itemschema, open("save.p", "wb"))
 		return itemschema
+	else:
+		try:
+			return pickle.load(open("save.p", "rb" ))
+		except:
+			return schema(True)
 
-itemschema = schema(SchemaUpdate)
+
 
 def reset(tf): #resets text files that contain steam ids
 	global past, future, found
@@ -100,8 +100,13 @@ def files(): #save lists to files
 	with open('found.txt', 'w') as out_file:
 	    out_file.write('\n'.join(found))
 
-def start():
-	reset(reset)
+if __name__ == '__main__':
+	app = App.Application()
+
+def start(schea, res):
+	global past, future, found, itemschema
+	itemschema = schema(schea)
+	reset(res)
 	if STEAM_USERNAME != '':
 		tempid = getid(STEAM_USERNAME)
 		if tempid not in past:
@@ -121,6 +126,3 @@ def start():
 				getfriend(i)
 				if hours(i)<target:
 					backpack(i)
-
-if __name__ == '__main__':
-	app = App.Application()

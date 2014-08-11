@@ -21,18 +21,16 @@ class Application:
     	salvage = BooleanVar()
     	entryid = StringVar()
 
-
-    	clicked = False
+    	self.clicked = False
 
     	def start():
-    		SpiderCrawler.start()
+    		SpiderCrawler.start(SchemaUpdate.get(), reset.get())
 
     	def callback(event):
-    	    global clicked
-    	    if (clicked == False):
+    	    if (self.clicked == False):
     	        box.delete(0, END)
     	        box.config(fg = "black")
-    	        clicked = True
+    	        self.clicked = True
 
     	b = Button(app, text="START", command=start)
     	b.pack()

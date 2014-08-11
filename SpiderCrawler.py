@@ -1,25 +1,29 @@
-try:
-    import urllib.request as urllib2
-except:
-    import urllib2
+import urllib.request as urllib2
 import xml.etree.ElementTree as ET
 import requests
 from xml.dom.minidom import parseString
 import pickle
+import App
 
 SchemaUpdate = False
 reset = False #If you want to contiinue where you left off or reset?
 fake = ['267', '266']
 STEAM_API_KEY = '32EADD85E6F53CB6AAF6D21558ED6C73' #your steam api key
 BACKPACK_TF_API_KEY = '53e1698f4f96f4977e8b4567'
-STEAM_USERNAME = 'Lotorens' #initial steam name
+STEAM_USERNAME = 'adamater' #initial steam name
 target = 250 #maximum hours
 gameid = '440' #tf2 is 440
+wanted = '222' #Items you are looking for
 
-def schema(tf):
-	print('checking schema, please wait ~ 30 secs')
+def schema(tf):#get item schema to find item names
+	global STEAM_API_KEY
+	try:
+		return pickle.load(open("save.p", "rb" ))
+	except:
+		return schema(True)
 	if tf:
-		schema_r = urllib2.urlopen('http://api.steampowered.com/IEconItems_440/GetSchema/v0001/?key=32EADD85E6F53CB6AAF6D21558ED6C73&format=xml')
+		print('updating schema, please wait ~ 30 secs')
+		schema_r = urllib2.urlopen(('http://api.steampowered.com/IEconItems_440/GetSchema/v0001/?key={}&format=xml').format(STEAM_API_KEY))
 		owned = schema_r.read()
 		data = ET.fromstring(owned)
 		itemschema = {}
@@ -28,15 +32,10 @@ def schema(tf):
 			itemschema[defindex] = item.find('name').text
 		pickle.dump(itemschema, open("save.p", "wb"))
 		return itemschema
-	else:
-		try:
-			return pickle.load(open("save.p", "rb" ))
-		except:
-			return schema(True)
 
 itemschema = schema(SchemaUpdate)
 
-def reset(tf): #resets text files with steam ids
+def reset(tf): #resets text files that contain steam ids
 	global past, future, found
 	if tf:
 		past = []
@@ -55,7 +54,7 @@ def getid(vanity): #converts vanity url to steam id
 	username_r = requests.get('http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key={}&vanityurl={}&format=xml'.format(STEAM_API_KEY, vanity))
 	return str(parseString(username_r.text.encode('utf-8')).getElementsByTagName('steamid')[0].firstChild.wholeText)
 
-def getfriend(id):
+def getfriend(id): #get user ids of friends
 	global future
 	global STEAM_API_KEY
 	try:
@@ -66,7 +65,7 @@ def getfriend(id):
 		pass
 
 
-def hours(id):
+def hours(id): #find steam hours
 	global STEAM_API_KEY, gameid
 	ownedgames_r = urllib2.urlopen(('http://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key={}&steamid={}&include_played_free_games=1&format=xml').format(STEAM_API_KEY, id))
 	owned = ownedgames_r.read()
@@ -77,18 +76,22 @@ def hours(id):
 			return minutes/60
 	return 0
 
-def backpack(id):
+def backpack(id): # check backpack
 	global STEAM_API_KEY, gameid, found
 	backpack_r = urllib2.urlopen(('http://api.steampowered.com/IEconItems_{}/GetPlayerItems/v0001/?key={}&steamid={}&format=xml').format(gameid, STEAM_API_KEY, id))
 	backpack = backpack_r.read()
 	data = ET.fromstring(backpack)
 	for item in data.findall("./items/item"):
-		if item.find('quality').text.startswith('5') and item.find('defindex').text not in fake:
+		if (item.find('quality').text.startswith('5') and int(item.find('defindex').text) not in fake):
 			found.append(id)
 			print("Unusual " + itemschema[item.find('defindex').text])
 			break
+		elif(item.find('defindex').text in wanted):
+			found.append(id)
+			print(itemschema[item.find('defindex').text])
+			break
 
-def files():
+def files(): #save lists to files
 	global past, future, found
 	with open('past.txt', 'w') as out_file:
 	    out_file.write('\n'.join(past))
@@ -97,7 +100,7 @@ def files():
 	with open('found.txt', 'w') as out_file:
 	    out_file.write('\n'.join(found))
 
-if __name__ == '__main__':
+def start():
 	reset(reset)
 	if STEAM_USERNAME != '':
 		tempid = getid(STEAM_USERNAME)
@@ -119,11 +122,5 @@ if __name__ == '__main__':
 				if hours(i)<target:
 					backpack(i)
 
-
-
-
-#check if id is proper
-#check friends list
-#check hours
-#check items worth value
-#
+if __name__ == '__main__':
+	app = App.Application()

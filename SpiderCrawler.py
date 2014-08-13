@@ -32,8 +32,6 @@ def schema(tf):#get item schema to find item names
 		except:
 			return schema(True)
 
-
-
 def reset(tf): #resets text files that contain steam ids
 	global past, future, found
 	if tf:
@@ -62,7 +60,6 @@ def getfriend(id): #get user ids of friends
 			future.append(i.firstChild.data)
 	except:
 		pass
-
 
 def hours(id): #find steam hours
 	global STEAM_API_KEY, gameid

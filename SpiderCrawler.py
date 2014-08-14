@@ -12,6 +12,7 @@ itemschema = {}
 run = True
 count = 0
 fcount = 0
+got = ''
 
 def schema(tf):#get item schema to find item names
 	global STEAM_API_KEY
@@ -73,10 +74,11 @@ def hours(id): #find steam hours
 	return 0
 
 def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded): # check backpack
-	global STEAM_API_KEY, gameid, found, fcount
+	global STEAM_API_KEY, gameid, found, fcount, got
 	backpack_r = urllib2.urlopen(('http://api.steampowered.com/IEconItems_{}/GetPlayerItems/v0001/?key={}&steamid={}&format=xml').format(gameid, STEAM_API_KEY, id))
 	backpack = backpack_r.read()
 	data = ET.fromstring(backpack)
+	got = ''
 	for item in data.findall("./items/item"):
 		if (item.find('quality').text.startswith('5') and int(item.find('defindex').text) not in [267, 266] and unu):
 			pass
@@ -97,17 +99,20 @@ def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded): # check backpac
 		if traded and not int(item.find('id').text) == int(item.find('original_id').text):
 			continue
 		found.append(id)
-		print(itemschema[item.find('defindex').text])
+		if got != '':
+			got+= ', '
+		got += itemschema[item.find('defindex').text]
+	if got != '':
 		fcount+= 1
-		break
+		return True
+	else:
+		return False
 
 def original(item):
 	if int(item.find('id').text) == int(item.find('original_id').text):
 		return True
 	else:
 		return False
-
-
 
 def files(): #save lists to files
 	global past, future, found
@@ -122,19 +127,23 @@ if __name__ == '__main__':
 	global app
 	app = App.Application()
 
-def start(schea, res, id, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
-	global past, future, found, itemschema, run, append, count
+def start(schea, res, id):
+	global past, future, found, itemschema
 	itemschema = schema(schea)
 	reset(res)
 	if id != '':	
 		tempid = getid(id)
 		if tempid not in past:
 			future.append(tempid)
+
+def go(gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
+	global past, future, temschema, run, count
 	while len(future) != 0:
 		for i in future:
 			if run:
 				count +=1
 				if count%1 == 0:
+					pass
 					print (str(count) + " checked")
 				files()
 				future.remove(i)
@@ -143,7 +152,9 @@ def start(schea, res, id, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
 				else:
 					past.append(i)
 					getfriend(i)
-					if hours(i)<hour:
-						backpack(i, gen, bud, bill, unu, maxs, bmoc, salv, traded)
+					uhour = hours(i)
+					if uhour<hour:
+						if backpack(i, gen, bud, bill, unu, maxs, bmoc, salv, traded):
+							return(i, int(uhour), got)
 			else:
 				return

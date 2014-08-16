@@ -1,5 +1,8 @@
 import threading
-from tkinter import *
+try:
+    from tkinter import *
+except ImportError:
+    from Tkinter import *
 import SpiderCrawler
 import multilist
 import webbrowser
@@ -7,9 +10,10 @@ import webbrowser
 class Application():
     def __init__(self):
         self.app = Tk()
+        self.app.wm_iconbitmap('.\data\spider.ico')
         self.app.wm_title("Spider Crawler")
-        self.app.minsize(width=880, height=348)
-        self.app.maxsize(width=880, height=348)
+        #self.app.minsize(width=880, height=348)
+        #self.app.maxsize(width=880, height=348)
 
         mainmainleft = Frame(self.app)
         bottom = Frame(self.app)
@@ -20,7 +24,11 @@ class Application():
 
         startn = Frame(mainleft)
         options = Frame(mainleft)
-        hoursoption = Frame(mainleft)
+        hourcredits = Frame(mainleft)
+
+        hoursoption = Frame(hourcredits)
+        credits = Frame(hourcredits)
+
         allbuttons = Frame(mainleft)
 
         fstart = Frame(startn)
@@ -61,42 +69,46 @@ class Application():
         self.box = Entry(startn, textvariable=self.entryid, fg = "gray")
         self.box.bind("<Button-1>", self.callback)
         self.box.insert(0, "Enter steamid")
-        self.box.pack(side = TOP, anchor=N, padx =25, pady = 10)
+        self.box.pack(side = TOP, anchor=N, padx =(5,25), pady = 10)
 
-        labelText=StringVar()
-        labelText.set("Max Hours")
-        Label(hoursoption, textvariable=labelText).pack(side=TOP)
+        Label(credits, text="Created by Akenne", font=("Times New Roman", 8)).pack(anchor = E, pady = (0,25))
+
+        credits.pack(side=TOP, anchor=E)
+
+        Label(hoursoption, text="Max Hours:").pack(side=LEFT, padx = (0,10))
 
         self.hours=IntVar()
         self.hours.set(250)
-        Entry(hoursoption,textvariable=self.hours,width=5).pack(side=TOP, pady = (0,20))
+        Entry(hoursoption,textvariable=self.hours,width=5).pack(side=LEFT)
 
-        Checkbutton(options, text = "Reload item schema", variable = self.SchemaUpdate).pack(side=TOP, anchor=W, fill=Y)
-        Checkbutton(options, text = "Start with fresh id", variable = self.reset).pack(side=TOP, anchor=W, fill=Y)
-        Checkbutton(itemoptions, text = "Only never traded items", variable = self.traded).pack(side=TOP, anchor=W, fill=Y)
-        Checkbutton(itemoptions, text = "Genuines", variable = self.genuine).pack(side=TOP, anchor=W, fill=Y)
-        Checkbutton(itemoptions, text = "Earbuds", variable = self.buds).pack(side=TOP, anchor=W, fill=Y)
-        Checkbutton(itemoptions, text = "Bill's", variable = self.bills).pack(side=TOP, anchor=W, fill=Y)
-        Checkbutton(itemoptions, text = "Unusuals", variable = self.unusual).pack(side=TOP, anchor=W, fill=Y)
-        Checkbutton(itemoptions, text = "Max's items", variable = self.maxs).pack(side=TOP, anchor=W, fill=Y)
-        Checkbutton(itemoptions, text = "BMOCs", variable = self.bmoc).pack(side=TOP, anchor=W, fill=Y)
-        Checkbutton(itemoptions, text = "Salvaged crates", variable = self.salvage).pack(side=TOP, anchor=W, fill=Y)
+        hoursoption.pack(padx= (0,45))
+
+        Checkbutton(options, text = "Reload item schema", variable = self.SchemaUpdate).pack(side=TOP, anchor=W, pady =(0, 3))
+        Checkbutton(options, text = "Start with fresh id", variable = self.reset).pack(side=TOP, anchor=W)
+        Checkbutton(itemoptions, text = "Only never traded items", variable = self.traded).pack(side=TOP, anchor=W)
+        Checkbutton(itemoptions, text = "Genuines", variable = self.genuine).pack(side=TOP, anchor=W)
+        Checkbutton(itemoptions, text = "Earbuds", variable = self.buds).pack(side=TOP, anchor=W)
+        Checkbutton(itemoptions, text = "Bill's", variable = self.bills).pack(side=TOP, anchor=W)
+        Checkbutton(itemoptions, text = "Unusuals", variable = self.unusual).pack(side=TOP, anchor=W)
+        Checkbutton(itemoptions, text = "Max's items", variable = self.maxs).pack(side=TOP, anchor=W)
+        Checkbutton(itemoptions, text = "BMOCs", variable = self.bmoc).pack(side=TOP, anchor=W)
+        Checkbutton(itemoptions, text = "Salvaged crates", variable = self.salvage).pack(side=TOP, anchor=W)
         self.lbl = Label(fstart, text="0/0 found")
-        self.lbl.pack(side = LEFT, anchor = W, padx = (20,0))
+        self.lbl.pack(side = LEFT, anchor = W, padx = (20,30))
 
         fstart.pack(side=TOP)
 
         startn.pack(side=LEFT)
         options.pack(side=LEFT, padx=(0,30), pady = (5,0))
-        allbuttons.pack(side=LEFT, pady=(10,0))
-        hoursoption.pack(side=LEFT, padx = (25,0), pady = (5,0))
+        allbuttons.pack(side=LEFT, pady=(10,0), padx = (40,0))
+        hourcredits.pack(side=LEFT, padx = (95,0), anchor = N)
         
-        mainleft.pack(side = TOP, anchor = N)
-        self.graph.container.pack(side = LEFT, anchor = W, pady = 20)
-        itemoptions.pack(side=LEFT, pady=(0,5), anchor = S)
+        mainleft.pack(side = TOP)
+        self.graph.container.pack(side = LEFT, anchor = W, pady = 10)
+        itemoptions.pack(side=LEFT, anchor = E, padx=7)
         
-        bottom.pack(side=BOTTOM)
-        mainmainleft.pack(side = LEFT, padx=(10,0), anchor = N)
+        mainmainleft.pack(side = TOP, anchor = E)
+        bottom.pack(padx =10)
         self.app.mainloop()
 
     def updateGUI(self):
@@ -123,7 +135,9 @@ class Application():
         while SpiderCrawler.run:
             item = SpiderCrawler.go(self.genuine.get(), self.buds.get(), self.bills.get(), self.unusual.get(), 
                 self.maxs.get(), self.bmoc.get(), self.salvage.get(), self.hours.get(), self.traded.get())
-            self.graph.tree.insert('', 'end', values=item) 
+            print (item)
+            if item  is not None:
+                self.graph.tree.insert('', 'end', values=item) 
             self.updateGUI()  
 
     def callback(self, event):
@@ -139,7 +153,10 @@ class Application():
             self.popup()
 
     def backpack(self): 
-        webbrowser.open(self.var.get() + str(self.graph.tree.item(self.graph.tree.selection())["values"][0]))
+        try:
+            webbrowser.open(self.var.get() + str(self.graph.tree.item(self.graph.tree.selection())["values"][0]))
+        except:
+            self.popup()
 
     def popup(self):
         top = Toplevel()

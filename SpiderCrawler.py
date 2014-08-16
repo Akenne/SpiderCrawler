@@ -5,6 +5,7 @@ from xml.dom.minidom import parseString
 import pickle
 import App
 import threading
+import ctypes
 
 STEAM_API_KEY = '32EADD85E6F53CB6AAF6D21558ED6C73' #your steam api key
 gameid = '440' #tf2 is 440
@@ -17,7 +18,7 @@ got = ''
 def schema(tf):#get item schema to find item names
 	global STEAM_API_KEY
 	if tf:
-		print('updating schema, please wait ~ 30 secs')
+		ctypes.windll.user32.MessageBoxW(0, 'Updating schema, please wait ~ 30 secs', "Hold on", 0)
 		schema_r = urllib2.urlopen(('http://api.steampowered.com/IEconItems_440/GetSchema/v0001/?key={}&format=xml').format(STEAM_API_KEY))
 		owned = schema_r.read()
 		data = ET.fromstring(owned)
@@ -25,11 +26,11 @@ def schema(tf):#get item schema to find item names
 		for item in data.findall("./items/item"):
 			defindex = item.find('defindex').text
 			itemschema[defindex] = item.find('name').text
-		pickle.dump(itemschema, open("save.p", "wb"))
+		pickle.dump(itemschema, open(".\data\save.p", "wb"))
 		return itemschema
 	else:
 		try:
-			return pickle.load(open("save.p", "rb" ))
+			return pickle.load(open(".\data\save.p", "rb" ))
 		except:
 			return schema(True)
 
@@ -40,11 +41,11 @@ def reset(tf): #resets text files that contain steam ids
 		future = []
 		found = []
 	else:
-		with open('past.txt', 'r+') as in_file:
+		with open('.\data\past.txt', 'r+') as in_file:
 			past = in_file.read().split('\n')
-		with open('future.txt', 'r+') as in_file:
+		with open('.\data\\future.txt', 'r+') as in_file:
 			future = in_file.read().split('\n')
-		with open('found.txt', 'r+') as in_file:
+		with open('.\data\\found.txt', 'r+') as in_file:
 			found = in_file.read().split('\n')
 
 def getid(vanity): #converts vanity url to steam id
@@ -116,11 +117,11 @@ def original(item):
 
 def files(): #save lists to files
 	global past, future, found
-	with open('past.txt', 'w') as out_file:
+	with open('.\past.txt', 'w') as out_file:
 	    out_file.write('\n'.join(past))
-	with open('future.txt', 'w') as out_file:
+	with open('.\data\\future.txt', 'w') as out_file:
 	    out_file.write('\n'.join(future))
-	with open('found.txt', 'w') as out_file:
+	with open('.\data\\found.txt', 'w') as out_file:
 	    out_file.write('\n'.join(found))
 
 if __name__ == '__main__':
@@ -131,8 +132,11 @@ def start(schea, res, id):
 	global past, future, found, itemschema
 	itemschema = schema(schea)
 	reset(res)
-	if id != '':	
-		tempid = getid(id)
+	if id != '':
+		if id.startswith("7656"):
+			tempid = id
+		else:
+			tempid = getid(id)
 		if tempid not in past:
 			future.append(tempid)
 
@@ -142,19 +146,13 @@ def go(gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
 		for i in future:
 			if run:
 				count +=1
-				if count%1 == 0:
-					pass
-					print (str(count) + " checked")
 				files()
 				future.remove(i)
-				if i in past:
-					break
-				else:
+				if i not in past:
 					past.append(i)
 					getfriend(i)
 					uhour = hours(i)
 					if uhour<hour:
 						if backpack(i, gen, bud, bill, unu, maxs, bmoc, salv, traded):
 							return(i, int(uhour), got)
-			else:
 				return

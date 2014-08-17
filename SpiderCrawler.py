@@ -11,15 +11,17 @@ STEAM_API_KEY = '32EADD85E6F53CB6AAF6D21558ED6C73' #your steam api key
 gameid = '440' #tf2 is 440
 itemschema = {}
 run = True
-count = 0
-fcount = 0
 got = ''
 
 def schema(tf):#get item schema to find item names
 	global STEAM_API_KEY
 	if tf:
 		ctypes.windll.user32.MessageBoxW(0, 'Updating schema, please wait ~ 30 secs', "Hold on", 0)
-		schema_r = urllib2.urlopen(('http://api.steampowered.com/IEconItems_440/GetSchema/v0001/?key={}&format=xml').format(STEAM_API_KEY))
+		try:
+			schema_r = urllib2.urlopen(('http://api.steampowered.com/IEconItems_440/GetSchema/v0001/?key={}&format=xml').format(STEAM_API_KEY))
+		except:
+			ctypes.windll.user32.MessageBoxW(0, 'Steam is acting slow, please wait', "Hold on", 0)
+			return schema(tf)
 		owned = schema_r.read()
 		data = ET.fromstring(owned)
 		itemschema = {}
@@ -50,8 +52,13 @@ def reset(tf): #resets text files that contain steam ids
 
 def getid(vanity): #converts vanity url to steam id
 	global STEAM_API_KEY
-	username_r = requests.get('http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key={}&vanityurl={}&format=xml'.format(STEAM_API_KEY, vanity))
-	return str(parseString(username_r.text.encode('utf-8')).getElementsByTagName('steamid')[0].firstChild.wholeText)
+	try:
+		username_r = requests.get('http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key={}&vanityurl={}&format=xml'.format(STEAM_API_KEY, vanity))
+		return str(parseString(username_r.text.encode('utf-8')).getElementsByTagName('steamid')[0].firstChild.wholeText)
+	except:
+		ctypes.windll.user32.MessageBoxW(0, 'Steam is acting slow, please wait', "Hold on", 0)
+		return getid(vanity)
+
 
 def getfriend(id): #get user ids of friends
 	global future
@@ -76,7 +83,11 @@ def hours(id): #find steam hours
 
 def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded): # check backpack
 	global STEAM_API_KEY, gameid, found, fcount, got
-	backpack_r = urllib2.urlopen(('http://api.steampowered.com/IEconItems_{}/GetPlayerItems/v0001/?key={}&steamid={}&format=xml').format(gameid, STEAM_API_KEY, id))
+	try:
+		backpack_r = urllib2.urlopen(('http://api.steampowered.com/IEconItems_{}/GetPlayerItems/v0001/?key={}&steamid={}&format=xml').format(gameid, STEAM_API_KEY, id))
+	except:
+		ctypes.windll.user32.MessageBoxW(0, 'Steam is acting slow, please wait', "Hold on", 0)
+		return backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded)
 	backpack = backpack_r.read()
 	data = ET.fromstring(backpack)
 	got = ''
@@ -129,9 +140,11 @@ if __name__ == '__main__':
 	app = App.Application()
 
 def start(schea, res, id):
-	global past, future, found, itemschema
+	global past, future, found, itemschema, count, fcount
 	itemschema = schema(schea)
 	reset(res)
+	count = 0
+	fcount = 0
 	if id != '':
 		if id.startswith("7656"):
 			tempid = id

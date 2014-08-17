@@ -12,8 +12,8 @@ class Application():
         self.app = Tk()
         self.app.wm_iconbitmap('.\data\spider.ico')
         self.app.wm_title("Spider Crawler")
-        #self.app.minsize(width=880, height=348)
-        #self.app.maxsize(width=880, height=348)
+        #self.app.minsize(width=914, height=331)
+        #self.app.maxsize(width=914, height=331)
 
         mainmainleft = Frame(self.app)
         bottom = Frame(self.app)
@@ -60,9 +60,10 @@ class Application():
 
         buttons.pack()
         self.var = StringVar(self.app)
-        self.var.set("http://bptf/id/profiles")
+        self.var.set("www.backpack.tf/profiles/")
 
-        option = OptionMenu(bp, self.var, "http://backpack.tf/profiles/", "http://tf2items.com/profiles/", "http://tf2b.com/tf2/")
+        option = OptionMenu(bp, self.var, "www.backpack.tf/profiles/", "www.tf2items.com/profiles/", "www.tf2b.com/tf2/")
+        option.config(width = 18)
         option.pack()
         bp.pack(side = BOTTOM)    
 
@@ -98,16 +99,16 @@ class Application():
 
         fstart.pack(side=TOP)
 
-        startn.pack(side=LEFT)
+        startn.pack(side=LEFT, anchor = W, padx = (10, 0))
         options.pack(side=LEFT, padx=(0,30), pady = (5,0))
         allbuttons.pack(side=LEFT, pady=(10,0), padx = (40,0))
-        hourcredits.pack(side=LEFT, padx = (95,0), anchor = N)
+        hourcredits.pack(side=LEFT, padx = (95,0), anchor = E)
         
-        mainleft.pack(side = TOP)
+        mainleft.pack(side = TOP, anchor = W)
         self.graph.container.pack(side = LEFT, anchor = W, pady = 10)
         itemoptions.pack(side=LEFT, anchor = E, padx=7)
         
-        mainmainleft.pack(side = TOP, anchor = E)
+        mainmainleft.pack(side = TOP, fill = X)
         bottom.pack(padx =10)
         self.app.mainloop()
 
@@ -120,10 +121,12 @@ class Application():
         t1.daemon = True
         t1.start()
         SpiderCrawler.run = True
+        self.signal = True
         self.b.configure(text = "STOP", command=self.stop)
 
     def stop(self):
         SpiderCrawler.run = False
+        self.signal = False
         self.b.configure(text = "START", command=self.start)
 
     def threads(self):
@@ -132,7 +135,7 @@ class Application():
             self.box.config(fg = "black")
             self.clicked = True
         SpiderCrawler.start(self.SchemaUpdate.get(), self.reset.get(), self.entryid.get())
-        while SpiderCrawler.run:
+        while SpiderCrawler.run and self.signal:
             item = SpiderCrawler.go(self.genuine.get(), self.buds.get(), self.bills.get(), self.unusual.get(), 
                 self.maxs.get(), self.bmoc.get(), self.salvage.get(), self.hours.get(), self.traded.get())
             print (item)
@@ -148,13 +151,13 @@ class Application():
 
     def steam(self): 
         try:
-            webbrowser.open("steamcommunity.com/profiles/" + str(self.graph.tree.item(self.graph.tree.selection())["values"][0]))
+            webbrowser.get("windows-default").open("www.steamcommunity.com/profiles/" + str(self.graph.tree.item(self.graph.tree.selection())["values"][0]))
         except:
             self.popup()
 
     def backpack(self): 
         try:
-            webbrowser.open(self.var.get() + str(self.graph.tree.item(self.graph.tree.selection())["values"][0]))
+            webbrowser.get("windows-default").open(self.var.get() + str(self.graph.tree.item(self.graph.tree.selection())["values"][0]))
         except:
             self.popup()
 

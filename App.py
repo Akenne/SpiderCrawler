@@ -138,7 +138,6 @@ class Application():
         while SpiderCrawler.run and self.signal:
             item = SpiderCrawler.go(self.genuine.get(), self.buds.get(), self.bills.get(), self.unusual.get(), 
                 self.maxs.get(), self.bmoc.get(), self.salvage.get(), self.hours.get(), self.traded.get())
-            print (item)
             if item  is not None:
                 self.graph.tree.insert('', 'end', values=item) 
             self.updateGUI()  

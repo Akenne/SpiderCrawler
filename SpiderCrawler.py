@@ -43,12 +43,21 @@ def reset(tf): #resets text files that contain steam ids
 		future = []
 		found = []
 	else:
-		with open('.\data\past.txt', 'r+') as in_file:
-			past = in_file.read().split('\n')
-		with open('.\data\\future.txt', 'r+') as in_file:
-			future = in_file.read().split('\n')
-		with open('.\data\\found.txt', 'r+') as in_file:
-			found = in_file.read().split('\n')
+		try:
+			with open('.\data\past.txt', 'r+') as in_file:
+				past = in_file.read().split('\n')
+		except:
+			past = []
+		try:
+			with open('.\data\\future.txt', 'r+') as in_file:
+				future = in_file.read().split('\n')
+		except:
+			future = []
+		try:
+			with open('.\data\\found.txt', 'r+') as in_file:
+				found = in_file.read().split('\n')
+		except:
+			found = []
 
 def getid(vanity): #converts vanity url to steam id
 	global STEAM_API_KEY
@@ -110,11 +119,11 @@ def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded): # check backpac
 			continue
 		if traded and not int(item.find('id').text) == int(item.find('original_id').text):
 			continue
-		found.append(id)
 		if got != '':
 			got+= ', '
 		got += itemschema[item.find('defindex').text]
 	if got != '':
+		found.append(id)
 		fcount+= 1
 		return True
 	else:
@@ -128,7 +137,7 @@ def original(item):
 
 def files(): #save lists to files
 	global past, future, found
-	with open('.\past.txt', 'w') as out_file:
+	with open('.\data\past.txt', 'w') as out_file:
 	    out_file.write('\n'.join(past))
 	with open('.\data\\future.txt', 'w') as out_file:
 	    out_file.write('\n'.join(future))
@@ -159,7 +168,6 @@ def go(gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
 		for i in future:
 			if run:
 				count +=1
-				files()
 				future.remove(i)
 				if i not in past:
 					past.append(i)
@@ -167,5 +175,7 @@ def go(gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
 					uhour = hours(i)
 					if uhour<hour:
 						if backpack(i, gen, bud, bill, unu, maxs, bmoc, salv, traded):
+							files()
 							return(i, int(uhour), got)
+				files()
 				return

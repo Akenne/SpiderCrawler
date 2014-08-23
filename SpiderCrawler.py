@@ -6,182 +6,171 @@ import pickle
 import App
 import threading
 import ctypes
+import json
 
-STEAM_API_KEY = '32EADD85E6F53CB6AAF6D21558ED6C73' #your steam api key
+API = '32EADD85E6F53CB6AAF6D21558ED6C73' #your steam api key
 gameid = '440' #tf2 is 440
 itemschema = {}
 run = True
 got = ''
 
 def schema(tf):#get item schema to find item names
-	global STEAM_API_KEY
-	if tf:
-		ctypes.windll.user32.MessageBoxW(0, 'Updating schema, please wait ~ 30 secs', "Hold on", 0)
-		try:
-			schema_r = urllib2.urlopen(('http://api.steampowered.com/IEconItems_440/GetSchema/v0001/?key={}&format=xml').format(STEAM_API_KEY))
-		except:
-			ctypes.windll.user32.MessageBoxW(0, 'Steam is acting slow, please wait', "Hold on", 0)
-			return schema(tf)
-		owned = schema_r.read()
-		data = ET.fromstring(owned)
-		itemschema = {}
-		for item in data.findall("./items/item"):
-			defindex = item.find('defindex').text
-			itemschema[defindex] = item.find('name').text
-		pickle.dump(itemschema, open(".\data\save.p", "wb"))
-		return itemschema
-	else:
-		try:
-			return pickle.load(open(".\data\save.p", "rb" ))
-		except:
-			return schema(True)
+    global API
+    if tf:
+        ctypes.windll.user32.MessageBoxW(0, 'Updating schema, please wait', "Hold on", 0)
+        itemschema = {}
+        try:
+            url = 'http://api.steampowered.com/IEconItems_440/GetSchema/v0001/?key={}&format=json'.format(API)
+            data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
+        except:
+            ctypes.windll.user32.MessageBoxW(0, 'Steam is acting slow, please wait', "Hold on", 0)
+            return schema(tf)
+        for i in data["result"]["items"]:
+            itemschema[i['defindex']] = i['name']
+        pickle.dump(itemschema, open(".\data\save.p", "wb"))
+        return itemschema
+    else:
+        try:
+            return pickle.load(open(".\data\save.p", "rb" ))
+        except:
+            return schema(True)
 
 def reset(tf): #resets text files that contain steam ids
-	global past, future, found
-	if tf:
-		past = []
-		future = []
-		found = []
-	else:
-		try:
-			with open('.\data\past.txt', 'r+') as in_file:
-				past = in_file.read().split('\n')
-		except:
-			past = []
-		try:
-			with open('.\data\\future.txt', 'r+') as in_file:
-				future = in_file.read().split('\n')
-		except:
-			future = []
-		try:
-			with open('.\data\\found.txt', 'r+') as in_file:
-				found = in_file.read().split('\n')
-		except:
-			found = []
+    global past, future, found
+    if tf:
+        past = []
+        future = []
+        found = []
+    else:
+        try:
+            with open('.\data\past.txt', 'r+') as in_file:
+                past = in_file.read().split('\n')
+        except:
+            past = []
+        try:
+            with open('.\data\\future.txt', 'r+') as in_file:
+                future = in_file.read().split('\n')
+        except:
+            future = []
+        try:
+            with open('.\data\\found.txt', 'r+') as in_file:
+                found = in_file.read().split('\n')
+        except:
+            found = []
 
 def getid(vanity): #converts vanity url to steam id
-	global STEAM_API_KEY
-	try:
-		username_r = requests.get('http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key={}&vanityurl={}&format=xml'.format(STEAM_API_KEY, vanity))
-		return str(parseString(username_r.text.encode('utf-8')).getElementsByTagName('steamid')[0].firstChild.wholeText)
-	except:
-		ctypes.windll.user32.MessageBoxW(0, 'Steam is acting slow, please wait', "Hold on", 0)
-		return getid(vanity)
-
+    global API
+    try:
+        url = 'http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key={}&vanityurl={}&format=json'.format(API, vanity)
+        data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
+        return data['response']['steamid']
+    except:
+        ctypes.windll.user32.MessageBoxW(0, 'Steam is acting slow, please wait', "Hold on", 0)
+        return getid(vanity)
 
 def getfriend(id): #get user ids of friends
-	global future
-	global STEAM_API_KEY
-	if len(future) < 100:
-		try:
-			friends_r = requests.get(('http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key={}&steamid={}&relationship=friend&format=xml').format(STEAM_API_KEY, id))
-			for i in (parseString(friends_r.text.encode('utf-8')).getElementsByTagName('steamid')):
-				future.append(i.firstChild.data)
-		except:
-			pass
+    global future
+    global API
+    if len(future) < 100:
+        try:
+            url = 'http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key={}&steamid={}&relationship=friend&format=xml'.format(API, id)
+            data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
+            for i in data['friendslist']['friends']:
+                future.append(i['steamid'])
+        except:
+            pass
 
 def hours(id): #find steam hours
-	global STEAM_API_KEY, gameid
-	try:
-		ownedgames_r = urllib2.urlopen(('http://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key={}&steamid={}&include_played_free_games=1&format=xml').format(STEAM_API_KEY, id))
-	except:
-		return 0
-	owned = ownedgames_r.read()
-	data = ET.fromstring(owned)
-	for message in data.findall("./games/message"):
-		if message.find('appid').text.startswith(gameid):
-			minutes = int(message.find('playtime_forever').text) 
-			return minutes/60
-	return 0
+    global API, gameid
+    try:
+        url = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={}&format=json&input_json={{"appids_filter":[{}],"include_played_free_games":1,"steamid":{}}}'.format(API, gameid, id)
+        data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
+        return ((data['response']['games'][0]['playtime_forever'])/60)
+    except:
+        return 0
 
 def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded): # check backpack
-	global STEAM_API_KEY, gameid, found, fcount, got
-	try:
-		backpack_r = urllib2.urlopen(('http://api.steampowered.com/IEconItems_{}/GetPlayerItems/v0001/?key={}&steamid={}&format=xml').format(gameid, STEAM_API_KEY, id))
-	except:
-		return False
-	backpack = backpack_r.read()
-	data = ET.fromstring(backpack)
-	got = ''
-	for item in data.findall("./items/item"):
-		if (item.find('quality').text.startswith('5') and int(item.find('defindex').text) not in [267, 266] and unu):
-			pass
-		elif(item.find('quality').text.startswith('1') and gen):
-			pass
-		elif(int(item.find('defindex').text) == 143 and bud):
-			pass
-		elif(int(item.find('defindex').text) == 126 and bill):
-			pass
-		elif(int(item.find('defindex').text) in [160,161,162] and maxs):
-			pass
-		elif(int(item.find('defindex').text) == 666 and bmoc):
-			pass
-		elif(int(item.find('defindex').text) == 5068 and salv):
-			pass
-		else:
-			continue
-		if traded and not int(item.find('id').text) == int(item.find('original_id').text):
-			continue
-		if got != '':
-			got+= ', '
-		got += itemschema[item.find('defindex').text]
-	if got != '':
-		found.append(id)
-		fcount+= 1
-		return True
-	else:
-		return False
-
-def original(item):
-	if int(item.find('id').text) == int(item.find('original_id').text):
-		return True
-	else:
-		return False
+    global API, gameid, found, fcount, got
+    try:
+        url = 'http://api.steampowered.com/IEconItems_{}/GetPlayerItems/v0001/?key={}&steamid={}&format=json'.format(gameid, API, id)
+        data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
+    except:
+        return False
+    got = ''
+    if 'items' in data['result']:
+        for item in data['result']['items']:
+            if (item['quality'] == 5 and item['defindex'] not in [267, 266] and unu):
+                pass
+            elif(item['quality'] == 1 and gen):
+                pass
+            elif(item['defindex'] == 143 and bud):
+                pass
+            elif(item['defindex'] == 126 and bill):
+                pass
+            elif(item['defindex'] in [160,161,162] and maxs):
+                pass
+            elif(item['defindex'] == 666 and bmoc):
+                pass
+            elif(item['defindex'] == 5068 and salv):
+                pass
+            else:
+                continue
+            if traded and not (item['id'] == item['original_id']):
+                continue
+            if got != '':
+                got+= ', '
+            got += itemschema[str(item['defindex'])]
+        if got != '':
+            found.append(id)
+            fcount+= 1
+            return True
+    else:
+        return False
 
 def files(): #save lists to files
-	global past, future, found
-	with open('.\data\past.txt', 'w') as out_file:
-	    out_file.write('\n'.join(past))
-	with open('.\data\\future.txt', 'w') as out_file:
-	    out_file.write('\n'.join(future))
-	with open('.\data\\found.txt', 'w') as out_file:
-	    out_file.write('\n'.join(found))
+    global past, future, found
+    with open('.\data\past.txt', 'w') as out_file:
+        out_file.write('\n'.join(past))
+    with open('.\data\\future.txt', 'w') as out_file:
+        out_file.write('\n'.join(future))
+    with open('.\data\\found.txt', 'w') as out_file:
+        out_file.write('\n'.join(found))
 
 if __name__ == '__main__':
-	global app
-	app = App.Application()
+    global app
+    app = App.Application()
 
 def start(schea, res, id):
-	global past, future, found, itemschema, count, fcount
-	itemschema = schema(schea)
-	count = 0
-	fcount = 0
-	reset(res)
-	if id != '':
-		if id.startswith("7656"):
-			tempid = id
-		else:
-			tempid = getid(id)
-		if tempid not in past:
-			future.append(tempid)
-	else:
-		reset(False)
+    global past, future, found, itemschema, count, fcount
+    itemschema = schema(schea)
+    count = 0
+    fcount = 0
+    reset(res)
+    if id != '':
+        if id.startswith("7656"):
+            tempid = id
+        else:
+            tempid = getid(id)
+        if tempid not in past:
+            future.append(tempid)
+    else:
+        reset(False)
 
 def go(gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
-	global past, future, temschema, run, count
-	while len(future) != 0:
-		for i in future:
-			if run:
-				count +=1
-				future.remove(i)
-				if i not in past:
-					past.append(i)
-					getfriend(i)
-					uhour = hours(i)
-					if uhour<hour:
-						if backpack(i, gen, bud, bill, unu, maxs, bmoc, salv, traded):
-							files()
-							return(i, int(uhour), got)
-				if len(past) % 100:
-					files()
-				return
+    global past, future, temschema, run, count
+    while len(future) != 0:
+        for i in future:
+            if run:
+                count +=1
+                future.remove(i)
+                if i not in past:
+                    past.append(i)
+                    getfriend(i)
+                    uhour = hours(i)
+                    if uhour<hour:
+                        if backpack(i, gen, bud, bill, unu, maxs, bmoc, salv, traded):
+                            files()
+                            return(i, int(uhour), got)
+                if len(past) % 100:
+                    files()
+                return

@@ -72,16 +72,20 @@ def getid(vanity): #converts vanity url to steam id
 def getfriend(id): #get user ids of friends
 	global future
 	global STEAM_API_KEY
-	try:
-		friends_r = requests.get(('http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key={}&steamid={}&relationship=friend&format=xml').format(STEAM_API_KEY, id))
-		for i in (parseString(friends_r.text.encode('utf-8')).getElementsByTagName('steamid')):
-			future.append(i.firstChild.data)
-	except:
-		pass
+	if len(future) < 100:
+		try:
+			friends_r = requests.get(('http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key={}&steamid={}&relationship=friend&format=xml').format(STEAM_API_KEY, id))
+			for i in (parseString(friends_r.text.encode('utf-8')).getElementsByTagName('steamid')):
+				future.append(i.firstChild.data)
+		except:
+			pass
 
 def hours(id): #find steam hours
 	global STEAM_API_KEY, gameid
-	ownedgames_r = urllib2.urlopen(('http://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key={}&steamid={}&include_played_free_games=1&format=xml').format(STEAM_API_KEY, id))
+	try:
+		ownedgames_r = urllib2.urlopen(('http://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key={}&steamid={}&include_played_free_games=1&format=xml').format(STEAM_API_KEY, id))
+	except:
+		return 0
 	owned = ownedgames_r.read()
 	data = ET.fromstring(owned)
 	for message in data.findall("./games/message"):
@@ -95,8 +99,7 @@ def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded): # check backpac
 	try:
 		backpack_r = urllib2.urlopen(('http://api.steampowered.com/IEconItems_{}/GetPlayerItems/v0001/?key={}&steamid={}&format=xml').format(gameid, STEAM_API_KEY, id))
 	except:
-		ctypes.windll.user32.MessageBoxW(0, 'Steam is acting slow, please wait', "Hold on", 0)
-		return backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded)
+		return False
 	backpack = backpack_r.read()
 	data = ET.fromstring(backpack)
 	got = ''
@@ -151,9 +154,9 @@ if __name__ == '__main__':
 def start(schea, res, id):
 	global past, future, found, itemschema, count, fcount
 	itemschema = schema(schea)
-	reset(res)
 	count = 0
 	fcount = 0
+	reset(res)
 	if id != '':
 		if id.startswith("7656"):
 			tempid = id
@@ -161,6 +164,8 @@ def start(schea, res, id):
 			tempid = getid(id)
 		if tempid not in past:
 			future.append(tempid)
+	else:
+		reset(False)
 
 def go(gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
 	global past, future, temschema, run, count
@@ -177,5 +182,6 @@ def go(gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
 						if backpack(i, gen, bud, bill, unu, maxs, bmoc, salv, traded):
 							files()
 							return(i, int(uhour), got)
-				files()
+				if len(past) % 100:
+					files()
 				return

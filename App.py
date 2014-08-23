@@ -50,7 +50,7 @@ class Application():
 
         self.clicked = False
 
-        for i in [self.reset, self.buds, self.unusual, self.maxs, self.salvage]:
+        for i in [self.reset, self.buds, self.unusual, self.maxs, self.salvage, self.traded]:
             i.set(True)
 
         self.b = Button(fstart, text="START", command=self.start)
@@ -60,9 +60,9 @@ class Application():
 
         buttons.pack()
         self.var = StringVar(self.app)
-        self.var.set("www.backpack.tf/profiles/")
+        self.var.set("http://backpack.tf/profiles/")
 
-        option = OptionMenu(bp, self.var, "www.backpack.tf/profiles/", "www.tf2items.com/profiles/", "www.tf2b.com/tf2/")
+        option = OptionMenu(bp, self.var, "http://backpack.tf/profiles/", "www.tf2items.com/profiles/", "www.tf2b.com/tf2/")
         option.config(width = 18)
         option.pack()
         bp.pack(side = BOTTOM)    
@@ -79,7 +79,7 @@ class Application():
         Label(hoursoption, text="Max Hours:").pack(side=LEFT, padx = (0,10))
 
         self.hours=IntVar()
-        self.hours.set(250)
+        self.hours.set(500)
         Entry(hoursoption,textvariable=self.hours,width=5).pack(side=LEFT)
 
         hoursoption.pack(padx= (0,45))
@@ -113,7 +113,9 @@ class Application():
         self.app.mainloop()
 
     def updateGUI(self):
-        msg = str(SpiderCrawler.fcount) + "/" + str(SpiderCrawler.count) + " found"
+        fcount = str(SpiderCrawler.fcount)
+        count = str(SpiderCrawler.count)
+        msg = fcount + "/" + count + " found"
         self.lbl["text"] = msg
 
     def start(self):

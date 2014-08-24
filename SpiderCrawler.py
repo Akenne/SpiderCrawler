@@ -7,12 +7,14 @@ import App
 import threading
 import ctypes
 import json
+import queue
 
 API = '32EADD85E6F53CB6AAF6D21558ED6C73' #your steam api key
 gameid = '440' #tf2 is 440
 itemschema = {}
 run = True
-got = ''
+count = 0
+fcount = 0
 
 def schema(tf):#get item schema to find item names
     global API
@@ -71,14 +73,13 @@ def getid(vanity): #converts vanity url to steam id
 def getfriend(id): #get user ids of friends
     global future
     global API
-    if len(future) < 100:
-        try:
-            url = 'http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key={}&steamid={}&relationship=friend&format=xml'.format(API, id)
-            data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
-            for i in data['friendslist']['friends']:
-                future.append(i['steamid'])
-        except:
-            pass
+    try:
+        url = 'http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key={}&steamid={}&relationship=friend&format=json'.format(API, id)
+        data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
+        for i in data['friendslist']['friends']:
+            future.append(i['steamid'])
+    except:
+        pass
 
 def hours(id): #find steam hours
     global API, gameid
@@ -87,15 +88,15 @@ def hours(id): #find steam hours
         data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
         return ((data['response']['games'][0]['playtime_forever'])/60)
     except:
-        return 0
+        return 50000
 
 def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded): # check backpack
-    global API, gameid, found, fcount, got
+    global API, gameid, found, fcount
     try:
         url = 'http://api.steampowered.com/IEconItems_{}/GetPlayerItems/v0001/?key={}&steamid={}&format=json'.format(gameid, API, id)
         data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
     except:
-        return False
+        return ''
     got = ''
     if 'items' in data['result']:
         for item in data['result']['items']:
@@ -123,9 +124,7 @@ def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded): # check backpac
         if got != '':
             found.append(id)
             fcount+= 1
-            return True
-    else:
-        return False
+    return got
 
 def files(): #save lists to files
     global past, future, found
@@ -141,36 +140,67 @@ if __name__ == '__main__':
     app = App.Application()
 
 def start(schea, res, id):
-    global past, future, found, itemschema, count, fcount
+    global past, future, found, itemschema, run, qid, qhour, qgot, qcount, iq
     itemschema = schema(schea)
-    count = 0
-    fcount = 0
     reset(res)
     if id != '':
         if id.startswith("7656"):
             tempid = id
         else:
             tempid = getid(id)
-        if tempid not in past:
-            future.append(tempid)
+        future.append(tempid)
     else:
         reset(False)
+    qid = queue.Queue()
+    qhour = queue.Queue()
+    qgot = queue.Queue()
+    qcount = 0
+    iq = queue.Queue()
 
-def go(gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
-    global past, future, temschema, run, count
+def hunt(iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
+    global past, run, count, qid, qhour, qgot
+    while iq.qsize() != 0 and run:
+        i = iq.get()
+        if i == "":
+            ctypes.windll.user32.MessageBoxW(0, 'Please enter an ID', "Error", 0)
+            run = False
+        if run:
+            count +=1
+            if i not in past:
+                past.append(i)
+                uhour = hours(i)
+                if uhour<hour:
+                    got = backpack(i, gen, bud, bill, unu, maxs, bmoc, salv, traded)
+                    if got != '': 
+                        qid.put(i)
+                        qhour.put(int(uhour))
+                        qgot.put(got)
+
+def go(a, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
+    global future, run, qid, qcount, iq, past
     while len(future) != 0:
         for i in future:
             if run:
-                count +=1
-                future.remove(i)
-                if i not in past:
-                    past.append(i)
-                    getfriend(i)
-                    uhour = hours(i)
-                    if uhour<hour:
-                        if backpack(i, gen, bud, bill, unu, maxs, bmoc, salv, traded):
-                            files()
-                            return(i, int(uhour), got)
-                if len(past) % 100:
-                    files()
+                while i in future:
+                    a.updateGUI()
+                    if not qid.empty():
+                        item = [str(qid.get()), str(qhour.get()), str(qgot.get())]
+                        a.graph.tree.insert('', 'end', values=item) 
+                    if len(future) < 100:
+                        getfriend(i)
+                    if 100 >(iq.qsize()):
+                        iq.put(i)
+                        future.remove(i)
+                    if (qid.empty() and qcount<35):
+                        qcount += 1
+                        t = threading.Thread(target=hunt, args = (iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded))
+                        t.daemon = True
+                        t.start()
+                    if len(past) % 50 == 0:
+                        files()
+            else:
+                a.stop()
+                a.start()
                 return
+    a.stop()
+    a.start()

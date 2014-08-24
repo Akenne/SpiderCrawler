@@ -123,12 +123,10 @@ class Application():
         t1.daemon = True
         t1.start()
         SpiderCrawler.run = True
-        self.signal = True
         self.b.configure(text = "STOP", command=self.stop)
 
     def stop(self):
         SpiderCrawler.run = False
-        self.signal = False
         self.b.configure(text = "START", command=self.start)
 
     def threads(self):
@@ -137,12 +135,7 @@ class Application():
             self.box.config(fg = "black")
             self.clicked = True
         SpiderCrawler.start(self.SchemaUpdate.get(), self.reset.get(), self.entryid.get())
-        while SpiderCrawler.run and self.signal:
-            item = SpiderCrawler.go(self.genuine.get(), self.buds.get(), self.bills.get(), self.unusual.get(), 
-                self.maxs.get(), self.bmoc.get(), self.salvage.get(), self.hours.get(), self.traded.get())
-            if item  is not None:
-                self.graph.tree.insert('', 'end', values=item) 
-            self.updateGUI()  
+        SpiderCrawler.go(self, self.genuine.get(), self.buds.get(), self.bills.get(), self.unusual.get(), self.maxs.get(), self.bmoc.get(), self.salvage.get(), self.hours.get(), self.traded.get())
 
     def callback(self, event):
         if (self.clicked == False):

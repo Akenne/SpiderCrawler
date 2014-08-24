@@ -13,8 +13,10 @@ API = '32EADD85E6F53CB6AAF6D21558ED6C73' #your steam api key
 gameid = '440' #tf2 is 440
 itemschema = {}
 run = True
+restart = True
 count = 0
 fcount = 0
+ecount = 0
 
 def schema(tf):#get item schema to find item names
     global API
@@ -73,29 +75,37 @@ def getid(vanity): #converts vanity url to steam id
 def getfriend(id): #get user ids of friends
     global future
     global API
+    count = 0
     try:
         url = 'http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key={}&steamid={}&relationship=friend&format=json'.format(API, id)
         data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
         for i in data['friendslist']['friends']:
+            count += 1
+            if count >25:
+                return
             future.append(i['steamid'])
-    except:
+    except Exception as e:
+        print(e)
         pass
 
 def hours(id): #find steam hours
-    global API, gameid
+    global API, gameid, ecount, future
     try:
         url = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={}&format=json&input_json={{"appids_filter":[{}],"include_played_free_games":1,"steamid":{}}}'.format(API, gameid, id)
         data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
-        return ((data['response']['games'][0]['playtime_forever'])/60)
+        hours = ((data['response']['games'][0]['playtime_forever'])/60)
+        if len(future) < 200 and hours>500:
+            getfriend(id)
+        return hours
     except:
         return 50000
 
 def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded): # check backpack
-    global API, gameid, found, fcount
+    global API, gameid, found, fcount, run, ecount
     try:
         url = 'http://api.steampowered.com/IEconItems_{}/GetPlayerItems/v0001/?key={}&steamid={}&format=json'.format(gameid, API, id)
         data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
-    except:
+    except Exception as e:
         return ''
     got = ''
     if 'items' in data['result']:
@@ -157,32 +167,41 @@ def start(schea, res, id):
     qcount = 0
     iq = queue.Queue()
 
-def hunt(iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
-    global past, run, count, qid, qhour, qgot
-    while iq.qsize() != 0 and run:
+def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
+    global past, run, count, qid, qhour, qgot, future, restart
+    while iq.qsize() != 0 and run and restart:
         i = iq.get()
+        if i in future:
+            try:
+                future.remove(i)
+            except:
+                pass
         if i == "":
             ctypes.windll.user32.MessageBoxW(0, 'Please enter an ID', "Error", 0)
             run = False
         if run:
             count +=1
+            #if count %300 == 0:
+            #    count +=1
+            #    restart = False
+            a.updateGUI()
             if i not in past:
                 past.append(i)
+                if len(past) % 51 == 0:
+                        files()
                 uhour = hours(i)
                 if uhour<hour:
                     got = backpack(i, gen, bud, bill, unu, maxs, bmoc, salv, traded)
-                    if got != '': 
-                        qid.put(i)
-                        qhour.put(int(uhour))
-                        qgot.put(got)
+                    if got != '':
+                        item = [i, int(uhour), got]
+                        a.graph.tree.insert('', 'end', values=item)  
 
-def go(a, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
-    global future, run, qid, qcount, iq, past
+def go(threads, a, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
+    global future, run, qid, qcount, iq, past, restart
     while len(future) != 0:
         for i in future:
             if run:
                 while i in future:
-                    a.updateGUI()
                     if not qid.empty():
                         item = [str(qid.get()), str(qhour.get()), str(qgot.get())]
                         a.graph.tree.insert('', 'end', values=item) 
@@ -190,15 +209,20 @@ def go(a, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
                         getfriend(i)
                     if 100 >(iq.qsize()):
                         iq.put(i)
-                        future.remove(i)
-                    if (qid.empty() and qcount<35):
+                        try:
+                            future.remove(i)
+                        except:
+                            pass
+                    if (qid.empty() and qcount<threads):
                         qcount += 1
-                        t = threading.Thread(target=hunt, args = (iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded))
+                        t = threading.Thread(target=hunt, args = (a, iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded))
                         t.daemon = True
                         t.start()
-                    if len(past) % 50 == 0:
-                        files()
             else:
+                a.stop()
+                return
+            if not restart:
+                restart = True
                 a.stop()
                 a.start()
                 return

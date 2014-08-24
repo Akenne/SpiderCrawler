@@ -26,6 +26,9 @@ class Application():
         options = Frame(mainleft)
         hourcredits = Frame(mainleft)
 
+        checkoptions = Frame(options)
+        boxoptions = Frame(options)
+
         hoursoption = Frame(hourcredits)
         credits = Frame(hourcredits)
 
@@ -84,8 +87,15 @@ class Application():
 
         hoursoption.pack(padx= (0,45))
 
-        Checkbutton(options, text = "Reload item schema", variable = self.SchemaUpdate).pack(side=TOP, anchor=W, pady =(0, 3))
-        Checkbutton(options, text = "Start with fresh id", variable = self.reset).pack(side=TOP, anchor=W)
+        Checkbutton(checkoptions, text = "Reload item schema", variable = self.SchemaUpdate).pack(side=TOP, anchor=W, pady =(0, 3))
+        Checkbutton(checkoptions, text = "Start with fresh id", variable = self.reset).pack(side=TOP, anchor=W)
+        checkoptions.pack(side = TOP)
+        Label(boxoptions, text="Threads:").pack(side=LEFT, padx = (0,10))
+        self.thread=IntVar()
+        self.thread.set(25)
+        Entry(boxoptions,textvariable=self.thread,width=5).pack(side=LEFT)
+        boxoptions.pack(padx= (0,45))
+
         Checkbutton(itemoptions, text = "Only never traded items", variable = self.traded).pack(side=TOP, anchor=W)
         Checkbutton(itemoptions, text = "Genuines", variable = self.genuine).pack(side=TOP, anchor=W)
         Checkbutton(itemoptions, text = "Earbuds", variable = self.buds).pack(side=TOP, anchor=W)
@@ -135,7 +145,7 @@ class Application():
             self.box.config(fg = "black")
             self.clicked = True
         SpiderCrawler.start(self.SchemaUpdate.get(), self.reset.get(), self.entryid.get())
-        SpiderCrawler.go(self, self.genuine.get(), self.buds.get(), self.bills.get(), self.unusual.get(), self.maxs.get(), self.bmoc.get(), self.salvage.get(), self.hours.get(), self.traded.get())
+        SpiderCrawler.go(self.thread.get(), self, self.genuine.get(), self.buds.get(), self.bills.get(), self.unusual.get(), self.maxs.get(), self.bmoc.get(), self.salvage.get(), self.hours.get(), self.traded.get())
 
     def callback(self, event):
         if (self.clicked == False):

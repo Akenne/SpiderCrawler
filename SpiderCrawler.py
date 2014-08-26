@@ -168,7 +168,7 @@ def start(schea, res, id):
     iq = queue.Queue()
 
 def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
-    global past, run, count, qid, qhour, qgot, future, restart
+    global past, run, count, qid, qhour, qgot, future, restart, API
     while iq.qsize() != 0 and run and restart:
         i = iq.get()
         if i in future:
@@ -197,7 +197,7 @@ def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
                         a.graph.tree.insert('', 'end', values=item)  
 
 def go(threads, a, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
-    global future, run, qid, qcount, iq, past, restart
+    global future, run, qid, qcount, iq, past, restart,fcount
     while len(future) != 0:
         for i in future:
             if run:

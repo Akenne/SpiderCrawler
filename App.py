@@ -6,6 +6,7 @@ except ImportError:
 import SpiderCrawler
 import multilist
 import webbrowser
+import json
 
 class Application(Frame):
     def __init__(self,master=None):
@@ -38,23 +39,43 @@ class Application(Frame):
         self.traded = BooleanVar()
         self.f2p = BooleanVar()
         self.untradable = BooleanVar()
+
         self.entryid = StringVar()
-
-        self.clicked = False
-
-        self.apikey=StringVar()
+        self.apikey = StringVar()
+        self.bpurl = StringVar()
 
         self.hours=IntVar()
-        self.hours.set(500)
         self.recenthours=IntVar()
-        self.recenthours.set(500)
         self.thread=IntVar()
+
+        self.clicked = False
+        self.hours.set(500)
+        self.recenthours.set(500)
         self.thread.set(25)
-        self.bpurl = StringVar()
         self.bpurl.set("http://backpack.tf/profiles/")
 
-        for i in [self.reset, self.buds, self.unusual, self.maxs, self.salvage, self.traded]:
-            i.set(True)
+        with open('config.json', 'r') as f:
+            config = json.load(f)
+            self.SchemaUpdate.set(config['SchemaUpdate']) 
+            self.reset.set(config['reset']) 
+            self.genuine.set(config['genuine'])
+            self.buds.set(config['buds'])
+            self.bills.set(config['bills'])
+            self.unusual.set(config['unusual'])
+            self.stranges.set(config['stranges']) 
+            self.maxs.set(config['maxs'])
+            self.bmoc.set(config['bmoc'])
+            self.salvage.set(config['salvage']) 
+            self.traded.set(config['traded']) 
+            self.f2p.set(config['f2p'])
+            self.untradable.set(config['untradable'])
+            self.apikey.set(config['apikey'])
+            self.hours.set(config['hours'])
+            self.recenthours.set(config['recenthours'])
+            self.thread.set(config['thread'])
+        #except:
+        #    for i in [self.reset, self.buds, self.unusual, self.maxs, self.salvage, self.traded]:
+        #        i.set(True)
 
         self.box = Entry(topframe, textvariable=self.entryid, fg = "gray")
         self.box.bind("<Button-1>", self.callback)
@@ -88,7 +109,7 @@ class Application(Frame):
         Entry(botframe,textvariable=self.hours,width=5).grid(row=1, column=4, sticky = W)
 
         Label(botframe, text="Max recent Hours:").grid(row=2, column=4, sticky = W)
-        Entry(botframe,textvariable=self.recenthours,width=5).grid(row=3, column=4, sticky = W)
+        Entry(botframe,textvariable=self.recenthours,width=5).grid(row=3, column=4, sticky = W, pady = (0,5))
 
         Checkbutton(botframe, text = "Hide traded", variable = self.traded).grid(row=0, column=3, sticky = W)
         Checkbutton(botframe, text = "Hide f2p", variable = self.f2p).grid(row=1, column=3, sticky = W)
@@ -105,12 +126,21 @@ class Application(Frame):
         Checkbutton(botframe, text = "BMOCs", variable = self.bmoc).grid(row=0, column=1, sticky = W)
         Checkbutton(botframe, text = "Salvaged crates", variable = self.salvage).grid(row=1, column=1, sticky = W)
 
-        if len(str(self.apikey.get())) < 10:
-            self.api()
+        self.api()
 
         topframe.grid(row =0, column = 0, sticky=N+E+W)
         midframe.grid(row =1, column = 0, sticky=E+W)
         botframe.grid(row =2, column = 0, sticky=S+E+W)
+
+        def handler():
+            self.config = {'SchemaUpdate': self.SchemaUpdate.get(), 'reset': self.reset.get(), 'genuine': self.genuine.get(), 'buds': self.buds.get(), 'bills': self.bills.get(), 'unusual': self.unusual.get()
+            , 'stranges': self.stranges.get(), 'maxs': self.maxs.get(), 'bmoc': self.bmoc.get(), 'salvage': self.salvage.get(), 'traded': self.traded.get(), 'f2p': self.f2p.get(), 'untradable': self.untradable.get()
+            , 'apikey': self.apikey.get(), 'hours': self.hours.get(), 'recenthours': self.recenthours.get(), 'thread':self.thread.get()}     
+            with open('config.json', 'w') as f:
+                json.dump(self.config, f)
+            root.quit()
+
+        root.protocol("WM_DELETE_WINDOW", handler)
 
         root.mainloop()
 

@@ -132,12 +132,9 @@ def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded): # check backpac
                 continue
             if got != '':
                 got+= ', '
-            try:
-                got += itemschema[int(item['defindex'])]
-            except:
-                print(item['defindex'])
-                print(str(item['defindex']))
-                print(itemschema[str(item['defindex'])])
+            if item['quality'] == 5:
+                got+= 'Unusual '
+            got += itemschema[int(item['defindex'])]
         if got != '':
             found.append(id)
             fcount+= 1

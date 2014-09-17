@@ -30,8 +30,10 @@ def schema(tf):#get item schema to find item names
             ctypes.windll.user32.MessageBoxW(0, 'Steam is acting slow, please wait', "Hold on", 0)
             return schema(tf)
         for i in data["result"]["items"]:
+            print(i['name'])
             itemschema[i['defindex']] = i['name']
         pickle.dump(itemschema, open(".\data\save.p", "wb"))
+        ctypes.windll.user32.MessageBoxW(0, 'Schema updated', "Done", 0)
         return itemschema
     else:
         try:
@@ -101,7 +103,7 @@ def hours(id): #find steam hours
         return 50000
 
 def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded): # check backpack
-    global API, gameid, found, fcount, run, ecount
+    global API, gameid, found, fcount, run, ecount, itemschema
     try:
         url = 'http://api.steampowered.com/IEconItems_{}/GetPlayerItems/v0001/?key={}&steamid={}&format=json'.format(gameid, API, id)
         data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
@@ -130,7 +132,12 @@ def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded): # check backpac
                 continue
             if got != '':
                 got+= ', '
-            got += itemschema[str(item['defindex'])]
+            try:
+                got += itemschema[int(item['defindex'])]
+            except:
+                print(item['defindex'])
+                print(str(item['defindex']))
+                print(itemschema[str(item['defindex'])])
         if got != '':
             found.append(id)
             fcount+= 1
@@ -181,9 +188,6 @@ def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
             run = False
         if run:
             count +=1
-            #if count %300 == 0:
-            #    count +=1
-            #    restart = False
             a.updateGUI()
             if i not in past:
                 past.append(i)

@@ -61,7 +61,8 @@ class Application(Frame):
         self.box.insert(0, "Enter steamid")
         self.box.grid(row=0, column=0, columnspan =3, pady = 5, padx = (5,0))
 
-        self.b = Button(topframe, text="START", command=self.start).grid(row=1, column=0, padx = (5,2), pady = (0,5))
+        self.b = Button(topframe, text="START", command=self.start)
+        self.b.grid(row=1, column=0, padx = (5,2), pady = (0,5))
         self.cl = Button(topframe, text="CLEAR", command=self.clear).grid(row=1, column=1, padx = (0,2), pady = (0,5))
         self.he = Button(topframe, text="HELP", command=self.clear).grid(row=1, column=2, pady = (0,5))
 
@@ -77,9 +78,10 @@ class Application(Frame):
         Label(topframe, text="Threads:").grid(row=1, column=5, pady = 5)
         Entry(topframe,textvariable=self.thread,width=5).grid(row=1, column=6)
 
-        self.lbl = Label(topframe, text="0/0 found").grid(row=1, column=7, padx = (45,0))  
+        self.lbl = Label(topframe, text="0/0 found")
+        self.lbl.grid(row=1, column=7, padx = (45,0)) 
 
-        Label(botframe, text="Created by Akenne", font=("Times New Roman", 8)).grid(row=0, column=4, sticky = W)
+        Label(botframe, text="Created by Akenne", font=("Times New Roman", 8)).grid(row=3, column=0, sticky = W)
 
 
         Label(botframe, text="Max Hours:").grid(row=0, column=4, sticky = W)

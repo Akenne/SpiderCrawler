@@ -218,3 +218,4 @@ pip-log.txt
 *.txt
 future.txt
 past.txt
+config.json

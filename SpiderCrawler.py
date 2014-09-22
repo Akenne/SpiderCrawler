@@ -9,7 +9,6 @@ import ctypes
 import json
 import queue
 
-API = '32EADD85E6F53CB6AAF6D21558ED6C73' #your steam api key
 gameid = '440' #tf2 is 440
 itemschema = {}
 run = True
@@ -69,6 +68,9 @@ def getid(vanity): #converts vanity url to steam id
     try:
         url = 'http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key={}&vanityurl={}&format=json'.format(API, vanity)
         data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
+        if('steamid' not in data["response"]):
+            ctypes.windll.user32.MessageBoxW(0, 'Please enter a correct steamid or vanityurl', "Error", 0)
+            return "0"
         return data['response']['steamid']
     except:
         ctypes.windll.user32.MessageBoxW(0, 'Steam is acting slow, please wait', "Hold on", 0)
@@ -154,7 +156,7 @@ if __name__ == '__main__':
     app = App.Application()
 
 def start(schea, res, id):
-    global past, future, found, itemschema, run, qid, qhour, qgot, qcount, iq
+    global past, future, found, itemschema, run, qid, qhour, qgot, qcount, iq, run
     itemschema = schema(schea)
     reset(res)
     if id != '':
@@ -162,7 +164,10 @@ def start(schea, res, id):
             tempid = id
         else:
             tempid = getid(id)
-        future.append(tempid)
+        if tempid.startswith("7656"):
+            future.append(tempid)
+        else:
+            run = False
     else:
         reset(False)
     qid = queue.Queue()
@@ -198,7 +203,7 @@ def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
                         a.graph.tree.insert('', 'end', values=item)  
 
 def go(threads, a, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
-    global future, run, qid, qcount, iq, past, restart,fcount
+    global future, run, qid, qcount, iq, past, restart,fcounts
     while len(future) != 0:
         for i in future:
             if run:
@@ -227,5 +232,8 @@ def go(threads, a, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
                 a.stop()
                 a.start()
                 return
-    a.stop()
-    a.start()
+    if run:
+        a.stop()
+        a.start()
+    else:
+        a.stop()

@@ -85,7 +85,7 @@ class Application(Frame):
         self.b = Button(topframe, text="START", command=self.start)
         self.b.grid(row=1, column=0, padx = (5,2), pady = (0,5))
         self.cl = Button(topframe, text="CLEAR", command=self.clear).grid(row=1, column=1, padx = (0,2), pady = (0,5))
-        self.he = Button(topframe, text="HELP", command=self.clear).grid(row=1, column=2, pady = (0,5))
+        self.he = Button(topframe, text="HELP", command=self.help).grid(row=1, column=2, pady = (0,5))
 
         Checkbutton(topframe, text = "Reload item schema", variable = self.SchemaUpdate).grid(row=0, column=4, sticky = W, padx = 5)
         Checkbutton(topframe, text = "Start with fresh id", variable = self.reset).grid(row=1, column=4, sticky = W, padx = 5)
@@ -94,13 +94,15 @@ class Application(Frame):
         d = Button(topframe, text="GotoBP", command=self.backpack).grid(row=0, column=6, pady = (5,0))
         option = OptionMenu(topframe, self.bpurl, "http://backpack.tf/profiles/", "www.tf2items.com/profiles/", "www.tf2b.com/tf2/")
         option.config(width = 22)
-        option.grid(row=0, column=7, padx = 5, pady = (5,0))
+        option.grid(row=0, column=7, columnspan =2, padx = 5, pady = (5,0))
         
         Label(topframe, text="Threads:").grid(row=1, column=5, pady = 5)
         Entry(topframe,textvariable=self.thread,width=5).grid(row=1, column=6)
 
+        e = Button(topframe, text="API key", command=self.api).grid(row=1, column=7, padx = 5, pady = (0,5), sticky = W)
+
         self.lbl = Label(topframe, text="0/0 found")
-        self.lbl.grid(row=1, column=7, padx = (45,0)) 
+        self.lbl.grid(row=1, column=8, padx = (0,25)) 
 
         Label(botframe, text="Created by Akenne", font=("Times New Roman", 8)).grid(row=3, column=0, sticky = W)
 
@@ -109,7 +111,7 @@ class Application(Frame):
         Entry(botframe,textvariable=self.hours,width=5).grid(row=1, column=4, sticky = W)
 
         Label(botframe, text="Max recent Hours:").grid(row=2, column=4, sticky = W)
-        Entry(botframe,textvariable=self.recenthours,width=5).grid(row=3, column=4, sticky = W, pady = (0,5))
+        Entry(botframe,textvariable=self.recenthours,width=5).grid(row=3, column=4, sticky = W, pady = (0,7))
 
         Checkbutton(botframe, text = "Hide traded", variable = self.traded).grid(row=0, column=3, sticky = W)
         Checkbutton(botframe, text = "Hide f2p", variable = self.f2p).grid(row=1, column=3, sticky = W)
@@ -126,7 +128,8 @@ class Application(Frame):
         Checkbutton(botframe, text = "BMOCs", variable = self.bmoc).grid(row=0, column=1, sticky = W)
         Checkbutton(botframe, text = "Salvaged crates", variable = self.salvage).grid(row=1, column=1, sticky = W)
 
-        self.api()
+        if len(str(self.apikey.get())) < 4:
+            self.api()
 
         topframe.grid(row =0, column = 0, sticky=N+E+W)
         midframe.grid(row =1, column = 0, sticky=E+W)
@@ -199,6 +202,35 @@ class Application(Frame):
         msg.pack()
         button = Button(top, text="Dismiss", command=top.destroy)
         button.pack()
+
+    def help(self):
+        def show_hand_cursor(event):
+            event.widget.configure(cursor="center_ptr")
+
+        def show_arrow_cursor(event):
+            event.widget.configure(cursor="")
+
+        def click(event):
+            webbrowser.get("windows-default").open("www.steamcommunity.com/dev/apikey")
+
+        top = Toplevel()
+        top.title("Help")
+        T = Text(top, height=20, width=56)
+        T.tag_configure('bold_italics', font=('Arial', 12, 'bold', 'italic'))
+        T.tag_configure('big', font=('Verdana', 20, 'bold'))
+        T.insert(END,'Spider Crawler Help\n', 'big')
+        quote = "Start off by getting your API key, it can be found here -"
+        T.insert(END, quote)
+        T.tag_config("a", foreground="blue", underline=1)
+        T.tag_bind("a", "<Enter>", show_hand_cursor)
+        T.tag_bind("a", "<Leave>", show_arrow_cursor)
+        T.tag_bind("a", "<Button-1>", click)
+        T.config(cursor="arrow")
+        T.insert(END, "link", "a")
+        T.pack()
+
+
+
 
     def api(self):
         top = Toplevel()

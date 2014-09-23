@@ -104,7 +104,7 @@ def hours(id): #find steam hours
     except:
         return 50000
 
-def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded): # check backpack
+def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded,): # check backpack
     global API, gameid, found, fcount, run, ecount, itemschema
     try:
         url = 'http://api.steampowered.com/IEconItems_{}/GetPlayerItems/v0001/?key={}&steamid={}&format=json'.format(gameid, API, id)
@@ -202,7 +202,7 @@ def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
                         item = [i, int(uhour), got]
                         a.graph.tree.insert('', 'end', values=item)  
 
-def go(threads, a, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
+def go(threads, a, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded, f2p, untradable):
     global future, run, qid, qcount, iq, past, restart,fcounts
     while len(future) != 0:
         for i in future:

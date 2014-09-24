@@ -104,7 +104,7 @@ def hours(id): #find steam hours
     except:
         return 50000
 
-def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded,): # check backpack
+def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded, f2p, untradable): # check backpack
     global API, gameid, found, fcount, run, ecount, itemschema
     try:
         url = 'http://api.steampowered.com/IEconItems_{}/GetPlayerItems/v0001/?key={}&steamid={}&format=json'.format(gameid, API, id)
@@ -112,21 +112,26 @@ def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded,): # check backpa
     except Exception as e:
         return ''
     got = ''
+    if 'num_backpack_slots' in data['result']:
+        if (data['result']['num_backpack_slots'] < 150) and f2p:
+            return got
     if 'items' in data['result']:
         for item in data['result']['items']:
-            if (item['quality'] == 5 and item['defindex'] not in [267, 266] and unu):
+            if ('flag_cannot_trade' in item) and untradable:
+                continue
+            elif (item['quality'] == 5 and item['defindex'] not in [267, 266] and unu):
                 pass
-            elif(item['quality'] == 1 and gen):
+            elif (item['quality'] == 1 and gen):
                 pass
-            elif(item['defindex'] == 143 and bud):
+            elif (item['defindex'] == 143 and bud):
                 pass
-            elif(item['defindex'] == 126 and bill):
+            elif (item['defindex'] == 126 and bill):
                 pass
-            elif(item['defindex'] in [160,161,162] and maxs):
+            elif (item['defindex'] in [160,161,162] and maxs):
                 pass
-            elif(item['defindex'] == 666 and bmoc):
+            elif (item['defindex'] == 666 and bmoc):
                 pass
-            elif(item['defindex'] == 5068 and salv):
+            elif (item['defindex'] == 5068 and salv):
                 pass
             else:
                 continue
@@ -176,7 +181,7 @@ def start(schea, res, id):
     qcount = 0
     iq = queue.Queue()
 
-def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
+def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded, f2p, untradable):
     global past, run, count, qid, qhour, qgot, future, restart, API
     while iq.qsize() != 0 and run and restart:
         i = iq.get()
@@ -197,7 +202,7 @@ def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded):
                         files()
                 uhour = hours(i)
                 if uhour<hour:
-                    got = backpack(i, gen, bud, bill, unu, maxs, bmoc, salv, traded)
+                    got = backpack(i, gen, bud, bill, unu, maxs, bmoc, salv, traded, f2p, untradable)
                     if got != '':
                         item = [i, int(uhour), got]
                         a.graph.tree.insert('', 'end', values=item)  
@@ -221,7 +226,7 @@ def go(threads, a, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded, f2p, unt
                             pass
                     if (qid.empty() and qcount<threads):
                         qcount += 1
-                        t = threading.Thread(target=hunt, args = (a, iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded))
+                        t = threading.Thread(target=hunt, args = (a, iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded, f2p, untradable))
                         t.daemon = True
                         t.start()
             else:

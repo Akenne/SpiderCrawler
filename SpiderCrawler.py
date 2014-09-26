@@ -31,6 +31,11 @@ def schema(tf):#get item schema to find item names
         for i in data["result"]["items"]:
             print(i['name'])
             itemschema[i['defindex']] = i['name']
+        itemschema[126] = 'Bill\'s hat'
+        itemschema[143] = 'Earbuds'
+        itemschema[160] = 'Vintage Lugermorph'
+        itemschema[161] = 'Big Kill'
+        itemschema[162] = 'Max\'s head'
         pickle.dump(itemschema, open(".\data\save.p", "wb"))
         ctypes.windll.user32.MessageBoxW(0, 'Schema updated', "Done", 0)
         return itemschema

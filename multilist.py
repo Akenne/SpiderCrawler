@@ -32,7 +32,12 @@ class McListBox(object):
 def sortby(tree, col, descending):
     data = [(tree.set(child, col), child) \
         for child in tree.get_children('')]
-    data.sort(reverse=descending)
+    if (data[0][0]).isdigit():
+        data = [(int(a), b) \
+            for a, b in data]
+        data = sorted(data, key=lambda tup: tup[0], reverse=descending)
+    else:
+        data.sort(reverse=descending)
     for ix, item in enumerate(data):
         tree.move(item[1], '', ix)
     tree.heading(col, command=lambda col=col: sortby(tree, col, \

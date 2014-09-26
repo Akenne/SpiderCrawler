@@ -12,19 +12,31 @@ class Application(Frame):
     def __init__(self,master=None):
         root = Tk()
         Frame.__init__(self,master)
+
+        #gives program icon and title
         root.wm_iconbitmap('.\data\spider.ico')
         root.wm_title("Spider Crawler")
 
+        #gui is divided into 3 parts, top middle and bottom
         topframe = Frame(root)
         midframe = Frame(root)
         botframe = Frame(root)
 
+        #allows program to expand when you resize it
+        Grid.columnconfigure(root,0,weight=1)
+        Grid.rowconfigure(root,1,weight=1)
+        Grid.columnconfigure(midframe,0,weight=1)
+        Grid.rowconfigure(midframe,0,weight=1)
+
+        #makes both the top and bottom set of buttons equal in spacing
         for i in range(5):
             topframe.columnconfigure(i, weight=1)
             botframe.columnconfigure(i, weight=1)
 
+        #creates the graph used in the middle(called from multilist.py)
         self.graph = multilist.McListBox(midframe)
-        self.graph.container.pack()
+        self.graph.container.grid(row=0,column=0,sticky=N+S+E+W)
+
         
         self.SchemaUpdate = BooleanVar()
         self.reset = BooleanVar()
@@ -131,9 +143,11 @@ class Application(Frame):
         if len(str(self.apikey.get())) < 4:
             self.api()
 
-        topframe.grid(row =0, column = 0, sticky=N+E+W)
-        midframe.grid(row =1, column = 0, sticky=E+W)
-        botframe.grid(row =2, column = 0, sticky=S+E+W)
+        topframe.grid(row =0, column = 0, sticky=E+W)
+        midframe.grid(row =1, column = 0, sticky=N+S+E+W)
+        botframe.grid(row =2, column = 0, sticky=E+W)
+
+        self.graph.tree.bind("<Double-1>", self.OnDoubleClick)
 
         def handler():
             self.config = {'SchemaUpdate': self.SchemaUpdate.get(), 'reset': self.reset.get(), 'genuine': self.genuine.get(), 'buds': self.buds.get(), 'bills': self.bills.get(), 'unusual': self.unusual.get()
@@ -146,6 +160,12 @@ class Application(Frame):
         root.protocol("WM_DELETE_WINDOW", handler)
 
         root.mainloop()
+
+    def OnDoubleClick(self, event):
+        try:
+            webbrowser.get("windows-default").open("www.steamcommunity.com/profiles/" + str(self.graph.tree.item(self.graph.tree.selection())["values"][0]))
+        except:
+            self.popup()
 
     def updateGUI(self):
         fcount = str(SpiderCrawler.fcount)
@@ -235,13 +255,15 @@ class Application(Frame):
         T.insert(END, "GotoBP - highlight a found user and click to open their backpack\n")
         T.pack()
 
-
-
-
     def api(self):
+        def link():
+            webbrowser.get("windows-default").open("www.steamcommunity.com/dev/apikey")
+
         top = Toplevel()
         top.title("Enter Steam API key")
         entry = Entry(top, textvariable=self.apikey,width=36)
-        entry.pack(padx = 15, pady = 5)
-        button = Button(top, text="Save", command=top.destroy)
-        button.pack()
+        entry.grid(row=0, column=0, columnspan =2, padx = 15, pady = 5)
+        save = Button(top, text="Save", command=top.destroy)
+        help = Button(top, text="Help", command=link)
+        save.grid(row=1, column=0, sticky = E, padx = (0,5))
+        help.grid(row=1, column=1, sticky = W, padx = (5,0))

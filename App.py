@@ -15,7 +15,7 @@ class Application(Frame):
 
         #gives program icon and title
         root.wm_iconbitmap('.\data\spider.ico')
-        root.wm_title("Spider Crawler")
+        root.wm_title("Spider Crawler 1.1")
 
         #gui is divided into 3 parts, top middle and bottom
         topframe = Frame(root)
@@ -56,13 +56,17 @@ class Application(Frame):
         self.apikey = StringVar()
         self.bpurl = StringVar()
 
-        self.hours=IntVar()
-        self.recenthours=IntVar()
+        self.maxhours = IntVar()
+        self.minhours = IntVar()
+        self.minrecenthours=IntVar()
+        self.maxrecenthours=IntVar()
         self.thread=IntVar()
 
         self.clicked = False
-        self.hours.set(500)
-        self.recenthours.set(500)
+        self.minhours.set(0)
+        self.maxhours.set(500)
+        self.minrecenthours.set(0)
+        self.maxrecenthours.set(500)
         self.thread.set(25)
         self.bpurl.set("http://backpack.tf/profiles/")
 
@@ -82,8 +86,10 @@ class Application(Frame):
             self.f2p.set(config['f2p'])
             self.untradable.set(config['untradable'])
             self.apikey.set(config['apikey'])
-            self.hours.set(config['hours'])
-            self.recenthours.set(config['recenthours'])
+            self.maxhours.set(config['maxhours'])
+            self.minhours.set(config['minhours'])
+            self.minrecenthours.set(config['minrecenthours'])
+            self.maxrecenthours.set(config['maxrecenthours'])
             self.thread.set(config['thread'])
         #except:
         #    for i in [self.reset, self.buds, self.unusual, self.maxs, self.salvage, self.traded]:
@@ -118,12 +124,15 @@ class Application(Frame):
 
         Label(botframe, text="Created by Akenne", font=("Times New Roman", 8)).grid(row=3, column=0, sticky = W)
 
+        Label(botframe, text="Total Hours:").grid(row = 0, column = 4, columnspan = 3, sticky = W)
+        Entry(botframe,textvariable=self.minhours, width = 4).grid(row = 1, column = 4, sticky = E)
+        Label(botframe, text=" to ").grid(row = 1, column = 5)
+        Entry(botframe,textvariable=self.maxhours, width = 4).grid(row = 1, column = 6, padx = (0,10), sticky = W)
 
-        Label(botframe, text="Max Hours:").grid(row=0, column=4, sticky = W)
-        Entry(botframe,textvariable=self.hours,width=5).grid(row=1, column=4, sticky = W)
-
-        Label(botframe, text="Max recent Hours:").grid(row=2, column=4, sticky = W)
-        Entry(botframe,textvariable=self.recenthours,width=5).grid(row=3, column=4, sticky = W, pady = (0,7))
+        Label(botframe, text = "Recent Hours:").grid(row = 2, column = 4, columnspan = 2, sticky = W)
+        Entry(botframe, textvariable = self.minrecenthours, width = 4).grid(row=3, column=4, pady = (0,7), sticky = E)
+        Label(botframe, text=" to ").grid(row = 3, column = 5, pady = (0,7))
+        Entry(botframe, textvariable = self.maxrecenthours, width = 4).grid(row=3, column=6, padx = (0,10), pady = (0,7))
 
         Checkbutton(botframe, text = "Hide traded", variable = self.traded).grid(row=0, column=3, sticky = W)
         Checkbutton(botframe, text = "Hide f2p", variable = self.f2p).grid(row=1, column=3, sticky = W)
@@ -152,7 +161,7 @@ class Application(Frame):
         def handler():
             self.config = {'SchemaUpdate': self.SchemaUpdate.get(), 'reset': self.reset.get(), 'genuine': self.genuine.get(), 'buds': self.buds.get(), 'bills': self.bills.get(), 'unusual': self.unusual.get()
             , 'stranges': self.stranges.get(), 'maxs': self.maxs.get(), 'bmoc': self.bmoc.get(), 'salvage': self.salvage.get(), 'traded': self.traded.get(), 'f2p': self.f2p.get(), 'untradable': self.untradable.get()
-            , 'apikey': self.apikey.get(), 'hours': self.hours.get(), 'recenthours': self.recenthours.get(), 'thread':self.thread.get()}     
+            , 'apikey': self.apikey.get(), 'maxhours': self.maxhours.get(), 'minhours': self.minhours.get(),  'minrecenthours': self.minrecenthours.get(), 'maxrecenthours': self.maxrecenthours.get(), 'thread':self.thread.get()}     
             with open('config.json', 'w') as f:
                 json.dump(self.config, f)
             root.quit()
@@ -191,7 +200,7 @@ class Application(Frame):
             self.clicked = True
         SpiderCrawler.API = self.apikey.get()
         SpiderCrawler.start(self.SchemaUpdate.get(), self.reset.get(), self.entryid.get())
-        SpiderCrawler.go(self.thread.get(), self, self.genuine.get(), self.buds.get(), self.bills.get(), self.unusual.get(), self.maxs.get(), self.bmoc.get(), self.salvage.get(), self.hours.get(), self.traded.get(), self.f2p.get(), self.untradable.get())
+        SpiderCrawler.go(self.thread.get(), self, self.genuine.get(), self.buds.get(), self.bills.get(), self.unusual.get(), self.maxs.get(), self.bmoc.get(), self.salvage.get(), self.maxhours.get(), self.traded.get(), self.f2p.get(), self.untradable.get(), self.minrecenthours.get(), self.minhours.get(), self.maxrecenthours.get())
 
     def callback(self, event):
         if (self.clicked == False):

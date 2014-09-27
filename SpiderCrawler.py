@@ -103,11 +103,15 @@ def hours(id): #find steam hours
         url = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={}&format=json&input_json={{"appids_filter":[{}],"include_played_free_games":1,"steamid":{}}}'.format(API, gameid, id)
         data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
         hours = ((data['response']['games'][0]['playtime_forever'])/60)
+        try:
+            rhours = (data['response']['games'][0]['playtime_2weeks'])/60
+        except:
+            rhours = 0
         if len(future) < 200 and hours>500:
             getfriend(id)
-        return hours
+        return hours, rhours
     except:
-        return 50000
+        return 50000, 0
 
 def backpack(id, gen, bud, bill, unu, maxs, bmoc, salv, traded, f2p, untradable): # check backpack
     global API, gameid, found, fcount, run, ecount, itemschema
@@ -186,7 +190,7 @@ def start(schea, res, id):
     qcount = 0
     iq = queue.Queue()
 
-def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded, f2p, untradable):
+def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, maxhours, traded, f2p, untradable, minrhours, minhours, maxrhours):
     global past, run, count, qid, qhour, qgot, future, restart, API
     while iq.qsize() != 0 and run and restart:
         i = iq.get()
@@ -205,14 +209,14 @@ def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded, f2p, untrad
                 past.append(i)
                 if len(past) % 51 == 0:
                         files()
-                uhour = hours(i)
-                if uhour<hour:
+                uhour, rhours = hours(i)
+                if minhours<=uhour<=maxhours and minrhours<=rhours<=maxrhours:
                     got = backpack(i, gen, bud, bill, unu, maxs, bmoc, salv, traded, f2p, untradable)
                     if got != '':
                         item = [i, int(uhour), got]
                         a.graph.tree.insert('', 'end', values=item)  
 
-def go(threads, a, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded, f2p, untradable):
+def go(threads, a, gen, bud, bill, unu, maxs, bmoc, salv, maxhours, traded, f2p, untradable, minrhours, minhours, maxrhours):
     global future, run, qid, qcount, iq, past, restart,fcounts
     while len(future) != 0:
         for i in future:
@@ -231,7 +235,7 @@ def go(threads, a, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded, f2p, unt
                             pass
                     if (qid.empty() and qcount<threads):
                         qcount += 1
-                        t = threading.Thread(target=hunt, args = (a, iq, gen, bud, bill, unu, maxs, bmoc, salv, hour, traded, f2p, untradable))
+                        t = threading.Thread(target=hunt, args = (a, iq, gen, bud, bill, unu, maxs, bmoc, salv, maxhours, traded, f2p, untradable, minrhours, minhours, maxrhours))
                         t.daemon = True
                         t.start()
             else:

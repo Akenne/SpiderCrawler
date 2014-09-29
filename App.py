@@ -49,6 +49,8 @@ class Application(Frame):
         self.bmoc = BooleanVar()
         self.salvage = BooleanVar()
         self.traded = BooleanVar()
+        self.online = BooleanVar()        
+        self.offline = BooleanVar()
         self.f2p = BooleanVar()
         self.untradable = BooleanVar()
 
@@ -60,6 +62,7 @@ class Application(Frame):
         self.minhours = IntVar()
         self.minrecenthours=IntVar()
         self.maxrecenthours=IntVar()
+        self.onlinedays = IntVar()
         self.thread=IntVar()
 
         self.clicked = False
@@ -67,6 +70,7 @@ class Application(Frame):
         self.maxhours.set(500)
         self.minrecenthours.set(0)
         self.maxrecenthours.set(500)
+        self.onlinedays.set(31)
         self.thread.set(25)
         self.bpurl.set("http://backpack.tf/profiles/")
 
@@ -83,6 +87,8 @@ class Application(Frame):
             self.bmoc.set(config['bmoc'])
             self.salvage.set(config['salvage']) 
             self.traded.set(config['traded']) 
+            self.online.set(config['online'])
+            self.offline.set(config['offline'])
             self.f2p.set(config['f2p'])
             self.untradable.set(config['untradable'])
             self.apikey.set(config['apikey'])
@@ -90,6 +96,7 @@ class Application(Frame):
             self.minhours.set(config['minhours'])
             self.minrecenthours.set(config['minrecenthours'])
             self.maxrecenthours.set(config['maxrecenthours'])
+            self.onlinedays.set(config['onlinedays'])
             self.thread.set(config['thread'])
         #except:
         #    for i in [self.reset, self.buds, self.unusual, self.maxs, self.salvage, self.traded]:
@@ -124,19 +131,23 @@ class Application(Frame):
 
         Label(botframe, text="Created by Akenne", font=("Times New Roman", 8)).grid(row=3, column=0, sticky = W)
 
-        Label(botframe, text="Total Hours:").grid(row = 0, column = 4, columnspan = 3, sticky = W)
-        Entry(botframe,textvariable=self.minhours, width = 4).grid(row = 1, column = 4, sticky = E)
-        Label(botframe, text=" to ").grid(row = 1, column = 5)
-        Entry(botframe,textvariable=self.maxhours, width = 4).grid(row = 1, column = 6, padx = (0,10), sticky = W)
+        Label(botframe, text="Total Hours:").grid(row = 0, column = 4, sticky = W)
+        Entry(botframe,textvariable=self.minhours, width = 4).grid(row = 0, column = 5, sticky = E)
+        Label(botframe, text=" to ").grid(row = 0, column = 6)
+        Entry(botframe,textvariable=self.maxhours, width = 4).grid(row = 0, column = 7, padx = (0,10), sticky = W)
 
-        Label(botframe, text = "Recent Hours:").grid(row = 2, column = 4, columnspan = 2, sticky = W)
-        Entry(botframe, textvariable = self.minrecenthours, width = 4).grid(row=3, column=4, pady = (0,7), sticky = E)
-        Label(botframe, text=" to ").grid(row = 3, column = 5, pady = (0,7))
-        Entry(botframe, textvariable = self.maxrecenthours, width = 4).grid(row=3, column=6, padx = (0,10), pady = (0,7))
+        Label(botframe, text = "Recent Hours:").grid(row = 1, column = 4, sticky = W)
+        Entry(botframe, textvariable = self.minrecenthours, width = 4).grid(row=1, column=5, sticky = E)
+        Label(botframe, text=" to ").grid(row = 1, column = 6)
+        Entry(botframe, textvariable = self.maxrecenthours, width = 4).grid(row=1, column=7, padx = (0,10))
 
         Checkbutton(botframe, text = "Hide traded", variable = self.traded).grid(row=0, column=3, sticky = W)
         Checkbutton(botframe, text = "Hide f2p", variable = self.f2p).grid(row=1, column=3, sticky = W)
         Checkbutton(botframe, text = "Hide untradable", variable = self.untradable).grid(row=2, column=3, sticky = W)
+        Checkbutton(botframe, text = "Hide offline", variable = self.offline).grid(row=3, column=3, sticky = W)
+
+        Checkbutton(botframe, text = "Last online (days):", variable = self.online).grid(row=2, column=4, sticky = W)
+        Entry(botframe, textvariable = self.onlinedays, width = 4).grid(row=2, column=5, sticky = E)
 
         Checkbutton(botframe, text = "Earbuds", variable = self.buds).grid(row=0, column=0, sticky = W)
         Checkbutton(botframe, text = "Bill's", variable = self.bills).grid(row=1, column=0, sticky = W)
@@ -147,7 +158,7 @@ class Application(Frame):
         Checkbutton(botframe, text = "Stranges", variable = self.stranges).grid(row=2, column=2, sticky = W)
 
         Checkbutton(botframe, text = "BMOCs", variable = self.bmoc).grid(row=0, column=1, sticky = W)
-        Checkbutton(botframe, text = "Salvaged crates", variable = self.salvage).grid(row=1, column=1, sticky = W)
+        Checkbutton(botframe, text = "Salvaged", variable = self.salvage).grid(row=1, column=1, sticky = W)
 
         if len(str(self.apikey.get())) < 4:
             self.api()
@@ -160,8 +171,8 @@ class Application(Frame):
 
         def handler():
             self.config = {'SchemaUpdate': self.SchemaUpdate.get(), 'reset': self.reset.get(), 'genuine': self.genuine.get(), 'buds': self.buds.get(), 'bills': self.bills.get(), 'unusual': self.unusual.get()
-            , 'stranges': self.stranges.get(), 'maxs': self.maxs.get(), 'bmoc': self.bmoc.get(), 'salvage': self.salvage.get(), 'traded': self.traded.get(), 'f2p': self.f2p.get(), 'untradable': self.untradable.get()
-            , 'apikey': self.apikey.get(), 'maxhours': self.maxhours.get(), 'minhours': self.minhours.get(),  'minrecenthours': self.minrecenthours.get(), 'maxrecenthours': self.maxrecenthours.get(), 'thread':self.thread.get()}     
+            , 'stranges': self.stranges.get(), 'maxs': self.maxs.get(), 'bmoc': self.bmoc.get(), 'salvage': self.salvage.get(), 'online': self.online.get(), 'offline': self.offline.get(), 'traded': self.traded.get(), 'f2p': self.f2p.get(), 'untradable': self.untradable.get()
+            , 'apikey': self.apikey.get(), 'maxhours': self.maxhours.get(), 'minhours': self.minhours.get(),  'minrecenthours': self.minrecenthours.get(), 'onlinedays': self.onlinedays.get(), 'maxrecenthours': self.maxrecenthours.get(), 'thread':self.thread.get()}     
             with open('config.json', 'w') as f:
                 json.dump(self.config, f)
             root.quit()

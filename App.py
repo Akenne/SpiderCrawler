@@ -15,7 +15,7 @@ class Application(Frame):
 
         #gives program icon and title
         root.wm_iconbitmap('.\data\spider.ico')
-        root.wm_title("Spider Crawler 1.1")
+        root.wm_title("Spider Crawler 1.2")
 
         #gui is divided into 3 parts, top middle and bottom
         topframe = Frame(root)
@@ -74,33 +74,33 @@ class Application(Frame):
         self.thread.set(25)
         self.bpurl.set("http://backpack.tf/profiles/")
 
-        with open('config.json', 'r') as f:
-            config = json.load(f)
-            self.SchemaUpdate.set(config['SchemaUpdate']) 
-            self.reset.set(config['reset']) 
-            self.genuine.set(config['genuine'])
-            self.buds.set(config['buds'])
-            self.bills.set(config['bills'])
-            self.unusual.set(config['unusual'])
-            self.stranges.set(config['stranges']) 
-            self.maxs.set(config['maxs'])
-            self.bmoc.set(config['bmoc'])
-            self.salvage.set(config['salvage']) 
-            self.traded.set(config['traded']) 
-            self.online.set(config['online'])
-            self.offline.set(config['offline'])
-            self.f2p.set(config['f2p'])
-            self.untradable.set(config['untradable'])
-            self.apikey.set(config['apikey'])
-            self.maxhours.set(config['maxhours'])
-            self.minhours.set(config['minhours'])
-            self.minrecenthours.set(config['minrecenthours'])
-            self.maxrecenthours.set(config['maxrecenthours'])
-            self.onlinedays.set(config['onlinedays'])
-            self.thread.set(config['thread'])
-        #except:
-        #    for i in [self.reset, self.buds, self.unusual, self.maxs, self.salvage, self.traded]:
-        #        i.set(True)
+        try:
+            with open('config.json', 'r') as f:
+                config = json.load(f)
+                self.SchemaUpdate.set(config['SchemaUpdate']) 
+                self.reset.set(config['reset']) 
+                self.genuine.set(config['genuine'])
+                self.buds.set(config['buds'])
+                self.bills.set(config['bills'])
+                self.unusual.set(config['unusual'])
+                self.stranges.set(config['stranges']) 
+                self.maxs.set(config['maxs'])
+                self.bmoc.set(config['bmoc'])
+                self.salvage.set(config['salvage']) 
+                self.traded.set(config['traded']) 
+                self.online.set(config['online'])
+                self.offline.set(config['offline'])
+                self.f2p.set(config['f2p'])
+                self.untradable.set(config['untradable'])
+                self.apikey.set(config['apikey'])
+                self.maxhours.set(config['maxhours'])
+                self.minhours.set(config['minhours'])
+                self.minrecenthours.set(config['minrecenthours'])
+                self.maxrecenthours.set(config['maxrecenthours'])
+                self.onlinedays.set(config['onlinedays'])
+                self.thread.set(config['thread'])
+        except:
+            pass
 
         self.box = Entry(topframe, textvariable=self.entryid, fg = "gray")
         self.box.bind("<Button-1>", self.callback)
@@ -211,7 +211,10 @@ class Application(Frame):
             self.clicked = True
         SpiderCrawler.API = self.apikey.get()
         SpiderCrawler.start(self.SchemaUpdate.get(), self.reset.get(), self.entryid.get())
-        SpiderCrawler.go(self.thread.get(), self, self.genuine.get(), self.buds.get(), self.bills.get(), self.unusual.get(), self.maxs.get(), self.bmoc.get(), self.salvage.get(), self.maxhours.get(), self.traded.get(), self.f2p.get(), self.untradable.get(), self.minrecenthours.get(), self.minhours.get(), self.maxrecenthours.get())
+        SpiderCrawler.go(self.thread.get(), self, self.genuine.get(), self.buds.get(), self.bills.get(), self.unusual.get(), 
+            self.maxs.get(), self.bmoc.get(), self.salvage.get(), self.maxhours.get(), self.traded.get(), self.f2p.get(), 
+            self.untradable.get(), self.minrecenthours.get(), self.minhours.get(), self.maxrecenthours.get(), 
+            self.online.get(), self.onlinedays.get(), self.offline.get())
 
     def callback(self, event):
         if (self.clicked == False):

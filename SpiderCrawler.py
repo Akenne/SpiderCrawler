@@ -8,6 +8,7 @@ import threading
 import ctypes
 import json
 import queue
+import time
 
 gameid = '440' #tf2 is 440
 itemschema = {}
@@ -165,6 +166,25 @@ def files(): #save lists to files
     with open('.\data\\found.txt', 'w') as out_file:
         out_file.write('\n'.join(found))
 
+
+def online(id, online, onlinedays, offline):
+    global API
+    a = False
+    b = False
+    try:
+        url = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key={}&steamids={}&format=json'.format(API, id)
+        data = json.loads(((urllib2.urlopen(url)).read()).decode("utf8"))
+    except Exception as e:
+        return a, b
+    if online:
+        if (onlinedays < ((time.time() - data['response']['players'][0]['lastlogoff'])/86400)):
+            a = True
+    if offline: 
+        if data['response']['players'][0]['personastate'] == 0:
+            b = True
+    return a, b
+
+
 if __name__ == '__main__':
     global app
     app = App.Application()
@@ -190,7 +210,7 @@ def start(schea, res, id):
     qcount = 0
     iq = queue.Queue()
 
-def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, maxhours, traded, f2p, untradable, minrhours, minhours, maxrhours):
+def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, maxhours, traded, f2p, untradable, minrhours, minhours, maxrhours, on, onlinedays, offline):
     global past, run, count, qid, qhour, qgot, future, restart, API
     while iq.qsize() != 0 and run and restart:
         i = iq.get()
@@ -209,6 +229,10 @@ def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, maxhours, traded, f2p, un
                 past.append(i)
                 if len(past) % 51 == 0:
                         files()
+                if on or offline:
+                    onl, off = online(i, on, onlinedays, offline)
+                    if onl or off:
+                        continue
                 uhour, rhours = hours(i)
                 if minhours<=uhour<=maxhours and minrhours<=rhours<=maxrhours:
                     got = backpack(i, gen, bud, bill, unu, maxs, bmoc, salv, traded, f2p, untradable)
@@ -216,7 +240,7 @@ def hunt(a, iq, gen, bud, bill, unu, maxs, bmoc, salv, maxhours, traded, f2p, un
                         item = [i, int(uhour), got]
                         a.graph.tree.insert('', 'end', values=item)  
 
-def go(threads, a, gen, bud, bill, unu, maxs, bmoc, salv, maxhours, traded, f2p, untradable, minrhours, minhours, maxrhours):
+def go(threads, a, gen, bud, bill, unu, maxs, bmoc, salv, maxhours, traded, f2p, untradable, minrhours, minhours, maxrhours, on, onlinedays, offline):
     global future, run, qid, qcount, iq, past, restart,fcounts
     while len(future) != 0:
         for i in future:
@@ -235,7 +259,7 @@ def go(threads, a, gen, bud, bill, unu, maxs, bmoc, salv, maxhours, traded, f2p,
                             pass
                     if (qid.empty() and qcount<threads):
                         qcount += 1
-                        t = threading.Thread(target=hunt, args = (a, iq, gen, bud, bill, unu, maxs, bmoc, salv, maxhours, traded, f2p, untradable, minrhours, minhours, maxrhours))
+                        t = threading.Thread(target=hunt, args = (a, iq, gen, bud, bill, unu, maxs, bmoc, salv, maxhours, traded, f2p, untradable, minrhours, minhours, maxrhours, on, onlinedays, offline))
                         t.daemon = True
                         t.start()
             else:
